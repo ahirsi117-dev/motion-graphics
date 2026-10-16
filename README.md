@@ -65,3 +65,19 @@
 Requires Node.js 18+. Then just ask Claude: *"make me a motion graphic about …"*.
 
 **Where files go:** the project and the finished video are saved in the folder you opened the session in. If that folder is synced to OneDrive, Dropbox, iCloud or Google Drive, the project code goes to `C:Projects` (or `~/Projects`) so the sync client doesn't freeze your machine, and the finished video still lands in your folder.
+
+---
+
+# سكيل مونتاج التوكنق هيد (talking-head-reel)
+
+تعطيه فيديو لشخص يتكلم للكاميرا، ويرجع لك ريل 9:16 جاهز للنشر. السكيل يسوي لك:
+
+- كابشن يمشي كلمة بكلمة، والكلمة اللي تنقال تنضاء.
+- موشن قرافيكس يطلع وقت الكلمة نفسها: ختم، عداد، قائمة تنشطب، أسهم، شبكة أشخاص، صور.
+- الوجه يصغر في كرت تحت الرسمة.
+- كفر يكون أول فريم بالفيديو، وكابشن قصير للبوست.
+- **يحمي الآيات القرآنية**: أي جزء ما تبيه ينلمس ينحط من الفيديو الأصلي كما هو، بلا كابشن ولا مؤثرات ولا صوت، وبعدها يتحقق السكيل إنه مطابق للأصل.
+
+**التثبيت:** انسخ مجلد `talking-head-reel/` كامل إلى `~/.claude/skills/talking-head-reel/`، أو افتح ملف `talking-head-reel.skill` واضغط **Save skill**. وبعدها افتح جلسة جديدة.
+
+**الاستخدام:** أرسل الفيديو واكتب له شي مثل: «سوّ لي هذا talking head مع كابشن وموشن». يشتغل على الماك والويندوز واللينكس والسحابة. أول مرة بجهاز جديد ينزّل أدواته بنفسه، وياخذ قرابة 10 دقايق.
