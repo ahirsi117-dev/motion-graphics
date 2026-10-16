@@ -56,7 +56,7 @@ if (opt('--cover')) {
   console.log(`✅ sheet.jpg (${n} frames)`);
 } else {
   const OUT = path.join(W, 'out'); fs.mkdirSync(OUT, { recursive: true });
-  const jobs = +(opt('--jobs') || Math.max(2, Math.min(6, os.cpus().length - 1))); const force = !!opt('--force');
+  const jobs = +(opt('--jobs') || Math.max(2, Math.min(8, os.cpus().length - 1))); const force = !!opt('--force');
   const todo = []; for (let i = 0; i < nFrames; i++) { const o = path.join(OUT, String(i + 1).padStart(5, '0') + '.jpg'); if (force || !fs.existsSync(o)) todo.push([i, o]); }
   let done = 0, next = 0; const t0 = Date.now();
   await Promise.all(Array.from({ length: jobs }, async () => { const p = await newPage();

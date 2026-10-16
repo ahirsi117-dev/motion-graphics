@@ -13,11 +13,22 @@ All paths below are relative to this skill's folder (`<skill>`). Make one work f
 
 ## Speed rules (users complain when this is slow)
 
-- Start `setup.sh` **in the background immediately**, and look at the video while it installs.
 - First run in a new environment takes ~5–10 min (whisper + model download); after that a 90 s reel takes ~5 min. Tell the user this once, up front.
-- Run long steps (transcription, full render) in the background and keep talking.
 - One contact sheet per preview (6 frames), not single screenshots.
-- Don't ask questions you can answer with a sensible default — decide, say it in one line, keep going. Ask only about: protected content, and things you genuinely can't infer.
+- Don't ask questions you can answer with a sensible default — decide, say it in one line, keep going.
+- **Work in parallel — with background commands AND subagents.** The user asked for this explicitly ("use more agents to speed up"). Nothing waits on something it doesn't need:
+
+| Lane | Starts | Runs as |
+|---|---|---|
+| A. `setup.sh` → `transcribe.py` | turn 1 | one background command (`setup.sh && transcribe.py`) |
+| B. `frames.sh` + the look contact sheet | turn 1 | background command (needs only ffmpeg) |
+| C. Look at the video: b-roll, burned-in text, verse/hadith check, cover frame pick, theme | while A runs | you, reading `look.jpg` |
+| D. Correct the transcript → `fixes.json` | when A finishes | **subagent** (give it `a.json`'s numbered segments, the dialect, the rules in step 3; it returns fixes.json) |
+| E. Design the scenes → `scenes.json` (+ `custom.js`) and `cover.json` | when A finishes, **at the same time as D** | **subagent** (give it the segment list with word indexes, the theme, `references/scenes.md`, the protected ranges; it returns scenes.json) |
+| F. Post caption (1–2 lines + hashtags) | when A finishes | **subagent** or you, while D/E run |
+| G. Full render | after the preview passes | background; `render.mjs` already draws with several browser pages at once (`--jobs`, default = CPU cores − 1, max 8) |
+
+  D and E only need the raw transcript and whisper's word indexes, so they run together; once both return, run `captions.py` and the preview. Use the Agent tool (general-purpose) for D/E/F with a complete, self-contained prompt — the subagent hasn't seen the conversation, so include the work folder path, file formats and rules. If no Agent tool exists, do D/E/F yourself while the render or transcription runs.
 
 ## The workflow
 
@@ -36,15 +47,17 @@ ffmpeg -v error -i <work>/src.mp4 -vf "fps=1/3,scale=240:-1,drawtext=text='%{pts
 ```
 Note: b-roll inserts, text already burned into the video (place your captions/graphics away from it — `theme.json → capY`), and **sacred / locked content**.
 
-### 2. Protected content — decide this before anything else
+### 2. Verse / hadith check — only if there is one
 
-If the video contains a **Quran recitation or verse card**, a hadith, a prayer, or any part the user said "don't touch / لا تزيد عليها", that range is **protected**: no caption, no graphic, no zoom, no sound effect, no music, no layout change. The engine skips it and `encode.py` splices that range straight from the source with identical framing, then verifies it (PSNR ≥ 40 dB = visually identical; it prints the number).
+**Most videos have no verse or hadith. Then there is nothing to protect: leave `protect` empty (`[]`), don't mention it, and edit the whole video normally.**
 
-Find the exact range: whisper usually returns nothing during recitation, so the gap between two spoken segments is a good first guess; confirm with a 5 fps contact sheet at each edge (verse cards often fade in/out ~0.3 s before/after the audio). Put it in `scenes.json`:
+Only when the video contains a **Quran verse (recited or shown as a card) or a hadith** — or a part the user said "don't touch / لا تزيد عليها" — that range is **protected**: no sound effect, no music, no caption, no graphic, no zoom, no layout change. The engine skips it and `encode.py` splices it straight from the source with identical framing, then verifies it (PSNR ≥ 40 dB = visually identical; it prints the number). Everything before and after it is edited as usual.
+
+How to find it: `transcribe.py` prints **"possible recitation"** lines — gaps ≥ 3 s between spoken segments where the audio is not silent (whisper usually skips recitation). Also look for a verse card / «قال رسول الله ﷺ» / «قال الله تعالى» in the frames or the transcript. No candidate and nothing on screen → no verse, move on. If there is one, confirm the edges with a 5 fps contact sheet (verse cards often fade in/out ~0.3 s before/after the audio) and put it in `scenes.json`:
 ```json
 {"protect": [[57.70, 83.00]], "scenes": [...]}
 ```
-If the user didn't mention it but the video has a verse, protect it anyway and tell them in one line. Never write Quranic text yourself; if a verse must appear and isn't in the video, copy it programmatically from an API (api.quran.com `text_imlaei` / api.alquran.cloud) and cross-check a second source.
+A hadith the speaker quotes in his own voice gets the same treatment as a verse. Tell the user in one line what you protected. (The skill never adds music or sound effects anywhere; if a user supplies background music, it must be silent inside protected ranges.) Never write Quranic text yourself; if a verse must appear and isn't in the video, copy it programmatically from an API (api.quran.com `text_imlaei` / api.alquran.cloud) and cross-check a second source.
 
 ### 3. Transcribe + correct
 
