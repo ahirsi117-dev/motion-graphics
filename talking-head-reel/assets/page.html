@@ -23,8 +23,9 @@ const ease=k=>1-Math.pow(1-k,3), eio=k=>k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
 function hex(c,a){const n=parseInt(c.slice(1),16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
 function rr(x,y,w,h,r){r=Math.max(0,Math.min(r,w/2,h/2));X.beginPath();X.roundRect(x,y,w,h,r);}
 function F(w,s){return `${w} ${s}px "${TH.font}", "Noto Sans Arabic", sans-serif`;}
-function text(s,x,y,size,color,w,align){X.font=F(w||800,size);X.direction='rtl';X.textAlign=align||'center';X.textBaseline='middle';X.fillStyle=color;X.fillText(s,x,y);}
-function tw(s,size,w){X.font=F(w||800,size);X.direction='rtl';return X.measureText(s).width;}
+const isAr=s=>/[\u0600-\u06FF]/.test(s);   /* text without Arabic letters (dates, 2/8/2027, "api") must run left-to-right or it gets reversed */
+function text(s,x,y,size,color,w,align){X.font=F(w||800,size);X.direction=isAr(s)?'rtl':'ltr';X.textAlign=align||'center';X.textBaseline='middle';X.fillStyle=color;X.fillText(s,x,y);}
+function tw(s,size,w){X.font=F(w||800,size);X.direction=isAr(s)?'rtl':'ltr';return X.measureText(s).width;}
 /* time refs: a number, or "seg:word" (word start) / "seg:wordE" (word end) from caps.json refs */
 function T(v){ if(typeof v==='number') return v; const m=/^(\d+):(\d+)(e?)$/i.exec(String(v)); if(!m) return +v||0;
   const r=REFS[m[1]+':'+m[2]]; if(!r){console.error('unknown ref '+v); return 0;} return m[3]?r[1]:r[0]; }
@@ -72,7 +73,7 @@ function caption(t){ const sc=sceneAt(t); if(sc.nocap) return; const c=capCard(t
     for(const w of l){ const on=t>=w.s&&t<Math.max(w.e,w.s+0.18), past=t>=w.s;
       X.save(); if(!past) X.globalAlpha*=bold?0:0.6;
       if(bold){ const z=on?1+0.12*Math.sin(Math.PI*pr(t,w.s,w.s+0.25)):1, cx=x-w.wd/2; X.translate(cx,y); X.scale(z,z); X.translate(-cx,-y);
-        X.font=F(900,size); X.direction='rtl'; X.textAlign='right'; X.textBaseline='middle';
+        X.font=F(900,size); X.direction=isAr(w.t)?'rtl':'ltr'; X.textAlign='right'; X.textBaseline='middle';
         X.fillStyle='rgba(0,0,0,.55)'; X.fillText(w.t,x+3,y+7); X.shadowColor='rgba(0,0,0,.5)'; X.shadowBlur=18;
         X.fillStyle=on||w.hot?TH.acc:'#FFFFFF'; X.fillText(w.t,x,y+2); }
       else { if(on){ X.fillStyle=TH.acc; rr(x-w.wd-10,y-size*0.62,w.wd+20,size*1.24,10); X.fill(); }
