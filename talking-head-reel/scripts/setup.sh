@@ -25,8 +25,9 @@ fi
 
 # 3) node + puppeteer-core (drives a headless Chromium that draws every frame)
 if command -v node >/dev/null; then
-  if [ -d "$HERE/node_modules/puppeteer-core" ]; then ok "puppeteer-core"; else
-    (cd "$HERE" && npm install --silent --no-audit --no-fund puppeteer-core@23 >/dev/null 2>&1) && ok "puppeteer-core" || miss "puppeteer-core — npm install failed"
+  # kept outside the skill folder (the skill may be read-only, and node_modules must not end up in the .skill zip)
+  if [ -d "$CACHE/node/node_modules/puppeteer-core" ]; then ok "puppeteer-core"; else
+    mkdir -p "$CACHE/node" && (cd "$CACHE/node" && npm install --silent --no-audit --no-fund puppeteer-core@23 >/dev/null 2>&1) && ok "puppeteer-core" || miss "puppeteer-core — npm install failed"
   fi
 else miss "Node.js 18+ — install the LTS from https://nodejs.org"; fi
 

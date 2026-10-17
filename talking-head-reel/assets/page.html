@@ -6,14 +6,16 @@
 <img id="VF" style="display:none">
 <script>
 /* ═══ Talking-head reel engine — draws one 1080×1920 frame for time t ═══
-   Layers: background+grid → video (full / card) → panels (scenes.json) → caption → progress bar.
+   Layers: base (talking video in full/card layout, or full-screen b-roll) → transition → panels → caption.
    Everything is data-driven: caps.json (word-timed captions), scenes.json (layout + panels), theme.json. */
 const W=1080,H=1920,FPS=30,TR=0.4;
-const cv=document.getElementById('cv'), X=cv.getContext('2d'), VF=document.getElementById('VF');
-window.X=X;
+const cv=document.getElementById('cv'), MAIN=cv.getContext('2d'), VF=document.getElementById('VF');
+let X=MAIN; window.X=X;
+const BF={cur:new Image(),prev:new Image()};          /* b-roll frames for the current / outgoing scene */
+const OFF=[0,1].map(()=>{const c=document.createElement('canvas');c.width=1080;c.height=1920;return c;});
 let CAPS=[],REFS={},TOTAL=0,SCENES=[],PROT=[],COVER=null;
 let TH={bg:'#141212',ink:'#F6F3F1',acc:'#C8372D',mut:'#9C9592',font:'Tajawal',onAcc:'#FFFFFF',
-        cardTop:0.24,cardZoom:1,hookZoom:2,grid:true,capSize:52,capY:1460,progress:true};
+        cardTop:0.24,cardZoom:1,hookZoom:2,grid:true,capSize:52,capY:1460,progress:true,capStyle:'box'};
 
 /* ---------- helpers ---------- */
 const cl=(v,a,b)=>Math.max(a,Math.min(b,v)), lerp=(a,b,k)=>a+(b-a)*k, pr=(t,a,b)=>cl((t-a)/(b-a),0,1);
@@ -37,7 +39,7 @@ const R={
 const GFX={down:{x:90,y:170,w:900,h:390}, lower:{x:70,y:150,w:940,h:1020}, off:{x:70,y:150,w:940,h:1400}, full:{x:90,y:170,w:900,h:390}};
 function sceneAt(t){ for(const s of SCENES) if(t>=s.s&&t<s.e) return s; return SCENES[SCENES.length-1]||{s:0,e:1e9,mode:'full'}; }
 function rectAt(t){ const i=SCENES.findIndex(s=>t>=s.s&&t<s.e); if(i<0) return R.full;
-  const cur=R[SCENES[i].mode||'full'], prev=i>0?R[SCENES[i-1].mode||'full']:cur, k=eio(pr(t,SCENES[i].s,SCENES[i].s+TR));
+  const cur=R[SCENES[i].mode]||R.full, prev=i>0?(R[SCENES[i-1].mode]||R.full):cur, k=eio(pr(t,SCENES[i].s,SCENES[i].s+TR));
   if(k>=1||prev===cur) return cur; const o={}; for(const key of ['x','y','w','h','r']) o[key]=lerp(prev[key],cur[key],k); return o; }
 const isProt=t=>PROT.some(([a,b])=>t>=a&&t<b);
 
@@ -57,21 +59,26 @@ function video(t,r){ if(!VF.naturalWidth) return; const full=r.w>=1079&&r.y<=1;
 /* ---------- caption (word by word, RTL, never over the face) ---------- */
 function capCard(t){ for(const c of CAPS) if(t>=c.s&&t<c.e) return c; return null; }
 function caption(t){ const sc=sceneAt(t); if(sc.nocap) return; const c=capCard(t); if(!c) return;
-  const size=TH.capSize, lh=size*1.38, maxW=860, gap=size*0.32, pad=26;
+  const size=TH.capStyle==='bold'&&TH.capSize===52?66:TH.capSize, lh=size*1.38, maxW=860, gap=size*0.32, pad=26;
   const ws=c.w.map(w=>({...w,wd:tw(w.t,size,800)}));
   const lines=[[]]; let lw=0; for(const w of ws){ if(lines[lines.length-1].length&&lw+w.wd>maxW){lines.push([]);lw=0;} lines[lines.length-1].push(w); lw+=w.wd+gap; }
   const widths=lines.map(l=>l.reduce((a,w)=>a+w.wd,0)+gap*(l.length-1)), bw=Math.max(...widths)+pad*2, bh=lines.length*lh+pad*1.3;
   const mode=sc.mode||'full', r=rectAt(t), cy=mode==='down'?Math.min(665,r.y-bh/2-14):mode==='lower'?Math.min(1255,r.y-bh/2-16):TH.capY-bh/2;
   const k=ease(pr(t,c.s,c.s+0.16)), y0=cy-bh/2+(1-k)*14;
-  X.save(); X.globalAlpha=k*(1-pr(t,c.e-0.08,c.e)); X.shadowColor='rgba(0,0,0,.35)'; X.shadowBlur=24; X.shadowOffsetY=8;
-  X.fillStyle=hex(TH.bg,0.9); rr(540-bw/2,y0,bw,bh,22); X.fill(); X.shadowColor='transparent';
+  const bold=TH.capStyle==='bold';   /* 'bold' = ad style: heavy white words with a 3D shadow, no box; the spoken word pops in the accent colour */
+  X.save(); X.globalAlpha=k*(1-pr(t,c.e-0.08,c.e));
+  if(!bold){ X.shadowColor='rgba(0,0,0,.35)'; X.shadowBlur=24; X.shadowOffsetY=8; X.fillStyle=hex(TH.bg,0.9); rr(540-bw/2,y0,bw,bh,22); X.fill(); X.shadowColor='transparent'; }
   lines.forEach((l,li)=>{ let x=540+widths[li]/2; const y=y0+pad*0.65+lh*li+lh/2;
     for(const w of l){ const on=t>=w.s&&t<Math.max(w.e,w.s+0.18), past=t>=w.s;
-      if(on){ X.fillStyle=TH.acc; rr(x-w.wd-10,y-size*0.62,w.wd+20,size*1.24,10); X.fill(); }
-      text(w.t,x,y+2,size,on?TH.onAcc:(w.hot?TH.acc:TH.ink),800,'right'); X.globalAlpha*=1;
-      if(!past){ /* dim words not spoken yet */ }
-      x-=w.wd+gap; } });
-  if(TH.progress){ X.fillStyle=hex(TH.ink,0.12); X.fillRect(140,y0+bh+14,800,5); X.fillStyle=TH.acc; X.fillRect(140+800*(1-t/TOTAL),y0+bh+14,800*t/TOTAL,5); }
+      X.save(); if(!past) X.globalAlpha*=bold?0:0.6;
+      if(bold){ const z=on?1+0.12*Math.sin(Math.PI*pr(t,w.s,w.s+0.25)):1, cx=x-w.wd/2; X.translate(cx,y); X.scale(z,z); X.translate(-cx,-y);
+        X.font=F(900,size); X.direction='rtl'; X.textAlign='right'; X.textBaseline='middle';
+        X.fillStyle='rgba(0,0,0,.55)'; X.fillText(w.t,x+3,y+7); X.shadowColor='rgba(0,0,0,.5)'; X.shadowBlur=18;
+        X.fillStyle=on||w.hot?TH.acc:'#FFFFFF'; X.fillText(w.t,x,y+2); }
+      else { if(on){ X.fillStyle=TH.acc; rr(x-w.wd-10,y-size*0.62,w.wd+20,size*1.24,10); X.fill(); }
+        text(w.t,x,y+2,size,on?TH.onAcc:(w.hot?TH.acc:TH.ink),800,'right'); }
+      X.restore(); x-=w.wd+gap; } });
+  if(TH.progress&&!bold){ X.fillStyle=hex(TH.ink,0.12); X.fillRect(140,y0+bh+14,800,5); X.fillStyle=TH.acc; X.fillRect(140+800*(1-t/TOTAL),y0+bh+14,800*t/TOTAL,5); }
   X.restore(); }
 
 /* ---------- panel kit (used from scenes.json → panel) ---------- */
@@ -132,10 +139,22 @@ const PANELS={
     const s=Math.min(b.w/im.naturalWidth,(b.h-(p.caption?70:0))/im.naturalHeight), w=im.naturalWidth*s, h=im.naturalHeight*s, x=540-w/2, y=b.y+(b.h-(p.caption?70:0)-h)/2;
     X.save(); X.globalAlpha*=k; X.translate(540,y+h/2); X.scale(0.96+0.04*k,0.96+0.04*k); X.translate(-540,-(y+h/2)); rr(x,y,w,h,24); X.save(); X.clip(); X.drawImage(im,x,y,w,h); X.restore();
     X.strokeStyle=hex(TH.ink,0.15); X.lineWidth=3; rr(x,y,w,h,24); X.stroke(); if(p.caption) text(p.caption,540,y+h+46,40,TH.ink,800); X.restore(); },
+  /* {type:'pills', items:[{t, at}], y?} — glossy tags stacked vertically (ad style: "Black Friday", "air · land · sea") */
+  pills(t,p,b,sc){ const size=p.size||52, gap=size*2.05, n=p.items.length, y0=(p.y??(b.y+b.h/2))-gap*(n-1)/2;
+    p.items.forEach((it,i)=>{ const at=T(it.at), k=ease(pr(t,at,at+0.28)); if(k<=0) return; const w=tw(it.t,size,800)+80, h=size*1.65, cy=y0+i*gap;
+      X.save(); X.globalAlpha*=k; X.translate(540,cy+(1-k)*24); X.scale(0.9+0.1*k,0.9+0.1*k);
+      X.shadowColor='rgba(0,0,0,.35)'; X.shadowBlur=24; X.shadowOffsetY=8; X.fillStyle=hex(p.color||TH.acc,0.88); rr(-w/2,-h/2,w,h,h/2); X.fill(); X.shadowColor='transparent';
+      X.fillStyle='rgba(255,255,255,.18)'; rr(-w/2+6,-h/2+5,w-12,h*0.42,h/2); X.fill();
+      X.strokeStyle='rgba(255,255,255,.45)'; X.lineWidth=2.5; rr(-w/2,-h/2,w,h,h/2); X.stroke();
+      text(it.t,0,3,size,TH.onAcc,800); X.restore(); }); },
+  /* {type:'bignum', text, at, y?} — one huge number / word above the head (a founding year, "4 ساعات") */
+  bignum(t,p,b,sc){ const at=T(p.at??sc.s), k=ease(pr(t,at,at+0.35)); if(k<=0) return; const size=p.size||210, y=p.y??330;
+    X.save(); X.globalAlpha*=k; X.translate(540,y-(1-k)*40); X.font=F(900,size); X.direction='ltr'; X.textAlign='center'; X.textBaseline='middle';
+    X.fillStyle='rgba(0,0,0,.45)'; X.fillText(p.text,6,10); X.shadowColor='rgba(0,0,0,.4)'; X.shadowBlur=30; X.fillStyle=p.color||'#FFFFFF'; X.fillText(p.text,0,0); X.restore(); },
 };
 const IMG={};
 function panels(t){ const sc=sceneAt(t); if(!sc.panel&&!sc.panels) return; const list=sc.panels||[sc.panel];
-  const b=GFX[sc.mode||'full'], k=inOut(t,sc.s+(sc.mode&&sc.mode!=='full'?TR-0.1:0),sc.e);
+  const m=sc.mode||'full', b=GFX[m]||GFX.full, k=inOut(t,sc.s+(m!=='full'&&m!=='broll'?TR-0.1:0),sc.e);
   X.save(); X.globalAlpha*=k; for(const p of list){ const f=PANELS[p.type]||window[p.type]; if(!f){console.error('unknown panel '+p.type);continue;}
     try{ X.save(); f(t,p,p.box||b,sc); X.restore(); }catch(e){ console.error('panel '+p.type+': '+e.message); X.restore(); } } X.restore(); }
 
@@ -147,8 +166,28 @@ function cover(){ const c=COVER; X.clearRect(0,0,W,H); if(VF.naturalWidth){ cons
   lines.forEach((l,i)=>{ const acc=/^\*.*\*$/.test(l), s=l.replace(/^\*|\*$/g,''); X.save(); X.shadowColor='rgba(0,0,0,.6)'; X.shadowBlur=30; text(s,540,y+i*size*1.08,size,acc?TH.acc:'#FFFFFF',900); X.restore(); }); }
 
 /* ---------- entry points ---------- */
-function draw(t){ X.setTransform(1,0,0,1,0,0); if(COVER) return cover();
-  background(); const r=rectAt(t); video(t,r); if(isProt(t)) return; panels(t); caption(t); }
+/* ---------- b-roll + transitions ---------- */
+function broll(t,sc,im){ X.fillStyle='#000'; X.fillRect(0,0,W,H); if(!im||!im.naturalWidth) return; const b=sc.broll||{};
+  const kb=b.kb===false?0:(b.kb??1)*0.08*pr(t,sc.s,sc.e);          /* slow Ken Burns push-in; still images need it, clips like it too */
+  const s=Math.max(W/im.naturalWidth,H/im.naturalHeight)*(1+kb), dw=im.naturalWidth*s, dh=im.naturalHeight*s;
+  X.drawImage(im,(W-dw)/2+(b.panX||0)*kb*W,(H-dh)/2,dw,dh); }
+function base(t,i,morph){ const sc=SCENES[i]||{mode:'full'};
+  if(sc.mode==='broll') return broll(t,sc,i===SCENE_I?BF.cur:BF.prev);
+  background(); video(t,morph?rectAt(t):(R[sc.mode||'full']||R.full)); }
+const TT={whip:0.32,dissolve:0.5,zoom:0.35,flash:0.3};
+let SCENE_I=0;
+function layer(n,fn){ const c=OFF[n].getContext('2d'); X=c; window.X=c; c.setTransform(1,0,0,1,0,0); fn(); X=MAIN; window.X=MAIN; return OFF[n]; }
+function draw(t){ X=MAIN; X.setTransform(1,0,0,1,0,0); if(COVER) return cover();
+  const i=Math.max(0,SCENES.findIndex(s=>t>=s.s&&t<s.e)); SCENE_I=i; const sc=SCENES[i], pv=SCENES[i-1];
+  const brollEdge=pv&&(sc.mode==='broll'||pv.mode==='broll'), tin=sc.tin||(brollEdge?'cut':'morph'), d=TT[tin]||0.35, k=pr(t,sc.s,sc.s+d);
+  if(!pv||tin==='morph'||tin==='cut'||k>=1){ base(t,i,tin==='morph'); }
+  else { const A=layer(0,()=>base(t,i-1,false)), B=layer(1,()=>base(t,i,false)), e=eio(k);
+    if(tin==='dissolve'){ X.drawImage(A,0,0); X.globalAlpha=e; X.drawImage(B,0,0); X.globalAlpha=1; }
+    else if(tin==='zoom'){ X.drawImage(A,0,0); X.save(); X.globalAlpha=e; const z=lerp(1.18,1,e); X.translate(540,960); X.scale(z,z); X.translate(-540,-960); X.drawImage(B,0,0); X.restore(); }
+    else if(tin==='flash'){ X.drawImage(k<0.5?A:B,0,0); X.fillStyle=`rgba(255,255,255,${1-Math.abs(k-0.5)*2})`; X.fillRect(0,0,W,H); }
+    else { /* whip: both layers slide right→left with a smeared motion blur */ const dir=sc.dir==='right'?-1:1, off=e*W*dir, blur=Math.sin(Math.PI*k);
+      for(let j=0;j<6;j++){ const sm=j*blur*55*dir; X.globalAlpha=j?0.22:1; X.drawImage(A,-off+sm,0); X.drawImage(B,W*dir-off+sm,0); } X.globalAlpha=1; } }
+  if(isProt(t)) return; panels(t); caption(t); }
 window.draw=draw;
 window.init=async d=>{ CAPS=d.caps.cards; REFS=d.caps.refs||{}; TOTAL=d.caps.total; Object.assign(TH,d.theme||{});
   SCENES=(d.scenes.scenes||[{s:0,e:1e9,mode:'full'}]).slice().sort((a,b)=>a.s-b.s); PROT=d.scenes.protect||[]; COVER=d.cover||null;
@@ -160,6 +199,7 @@ window.init=async d=>{ CAPS=d.caps.cards; REFS=d.caps.refs||{}; TOTAL=d.caps.tot
   await Promise.all(srcs.map(src=>new Promise(r=>{const im=new Image(); im.onload=im.onerror=r; im.src=src; IMG[src]=im;})));
   for(const f of (d.extra||[])) await new Promise(r=>{const s=document.createElement('script'); s.src=f; s.onload=s.onerror=r; document.head.appendChild(s);});
   return true; };
-window.setFrame=src=>{ VF.src=src; return (VF.decode?VF.decode():Promise.resolve()).catch(()=>{}); };
+const ld=(im,src)=>{ if(!src){ im.removeAttribute('src'); return Promise.resolve(); } if(im.src.endsWith(src)) return Promise.resolve(); im.src=src; return (im.decode?im.decode():Promise.resolve()).catch(()=>{}); };
+window.setFrame=(src,b)=>Promise.all([ld(VF,src),ld(BF.cur,b&&b.cur),ld(BF.prev,b&&b.prev)]);
 window.shot=q=>cv.toDataURL('image/jpeg',q);
 </script></body></html>

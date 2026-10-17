@@ -1,6 +1,6 @@
 ---
 name: talking-head-reel
-description: Edits a talking-head video (someone speaking to camera) into a finished 9:16 Instagram/TikTok reel — word-by-word Arabic (or any language) captions with the spoken word highlighted, motion-graphics panels synced to the speech (stamps, counters, crossed-out lists, process arrows, people grids, images), the face shrinking into a card under the graphics, a cover as the first frame, and a short post caption. Protects sacred or user-locked parts (Quran verses, hadith, anything the user says not to touch) by splicing them untouched from the source. Works on Mac, Windows, Linux and cloud sessions. Use whenever someone sends a video of a person talking and asks to edit / "منتج" / "مونتاج talking head" / add captions or motion graphics / "سوّه ريل" / "كابشن عربي" / "موشن قرافيكس فوق الكلام", or asks what this editing style is called and wants it done — even if they never say "talking head".
+description: Edits a talking-head video (someone speaking to camera) into a finished 9:16 Instagram/TikTok reel or spokesperson ad — word-by-word Arabic (or any language) captions with the spoken word highlighted, motion-graphics panels synced to the speech (stamps, counters, crossed-out lists, process arrows, people grids, glossy tags, big numbers, images), the face shrinking into a card under the graphics, full-screen b-roll between talking parts with whip / dissolve / zoom transitions, a storyboard the user approves before anything is rendered, a cover as the first frame, and a short post caption. Protects sacred or user-locked parts (Quran verses, hadith, anything the user says not to touch) by splicing them untouched from the source. Works on Mac, Windows, Linux and cloud sessions. Use whenever someone sends a video of a person talking and asks to edit / "منتج" / "مونتاج talking head" / "إعلان UGC" / "spokesperson ad" / add captions, b-roll or motion graphics / "سوّه ريل" / "كابشن عربي" / "موشن قرافيكس فوق الكلام", or asks what this editing style is called and wants it done — even if they never say "talking head".
 ---
 
 # Talking-head reel
@@ -24,9 +24,10 @@ All paths below are relative to this skill's folder (`<skill>`). Make one work f
 | B. `frames.sh` + the look contact sheet | turn 1 | background command (needs only ffmpeg) |
 | C. Look at the video: b-roll, burned-in text, verse/hadith check, cover frame pick, theme | while A runs | you, reading `look.jpg` |
 | D. Correct the transcript → `fixes.json` | when A finishes | **subagent** (give it `a.json`'s numbered segments, the dialect, the rules in step 3; it returns fixes.json) |
-| E. Design the scenes → `scenes.json` (+ `custom.js`) and `cover.json` | when A finishes, **at the same time as D** | **subagent** (give it the segment list with word indexes, the theme, `references/scenes.md`, the protected ranges; it returns scenes.json) |
+| E. Design the scenes → `scenes.json` (+ `custom.js`) and `cover.json` | when A finishes, **at the same time as D** | **subagent** (give it the segment list with word indexes, the theme, `references/scenes.md`, the protected ranges, the list of b-roll files; it returns scenes.json with a short Arabic `note` per scene) |
+| E2. Prepare b-roll (`broll.sh` per clip/image) | as soon as the user's b-roll files are known | background command, in parallel with D/E |
 | F. Post caption (1–2 lines + hashtags) | when A finishes | **subagent** or you, while D/E run |
-| G. Full render | after the preview passes | background; `render.mjs` already draws with several browser pages at once (`--jobs`, default = CPU cores − 1, max 8) |
+| G. Full render | **only after the user approves the storyboard** (step 6) | background; `render.mjs` already draws with several browser pages at once (`--jobs`, default = CPU cores − 1, max 8) |
 
   D and E only need the raw transcript and whisper's word indexes, so they run together; once both return, run `captions.py` and the preview. Use the Agent tool (general-purpose) for D/E/F with a complete, self-contained prompt — the subagent hasn't seen the conversation, so include the work folder path, file formats and rules. If no Agent tool exists, do D/E/F yourself while the render or transcription runs.
 
@@ -94,7 +95,21 @@ Read the transcript as a whole. For each sentence ask: **is the face more import
 - A claim with a fact / list / process → `down` (graphic on top y 170–560, caption ~665, face card below).
 - A big visual (people grid, chart, image) → `lower` (graphic fills y 150–1170, small face card at the bottom).
 - Pure explanation with no face needed → `off` (speaker slides away, voice continues).
+- The speaker names a product, place, service or result that can be *shown* → `broll` (full-screen footage, the voice continues over it).
 - Existing b-roll in the source → leave it `full`.
+
+**Two styles — pick from the video's purpose:**
+- **Talking reel** (opinion, education, story): mostly the face, graphics in `down` / `lower`, caption `capStyle: "box"`.
+- **Spokesperson ad / UGC ad** (selling a product or service): hook with the face (0–8 s) → services shown as **b-roll** with glossy `pills`, a `bignum`, short punchy captions → CTA with the face at the end ("اضغط الرابط"). Use `capStyle: "bold"` (heavy white words with a 3D shadow, no box, the spoken word pops in the accent colour). Cut on the beat of the speech: one b-roll shot per phrase, 1.5–4 s each.
+
+**B-roll.** Sources, in order: clips/photos the user sends (ask once: "عندك لقطات أو صور للمنتج؟") → shots already inside their video → frames/stills of the product they point to (website, Instagram) with their OK → AI-generated clips only if they have a generation service connected. Never use a real brand's footage or logo they didn't provide. Prepare each one (in parallel, background):
+```bash
+bash <skill>/scripts/broll.sh <work> van   /path/van.mp4 3 4     # name, file, start s, duration s → <work>/broll/van/
+bash <skill>/scripts/broll.sh <work> box   /path/box.jpg          # a still → animated with a slow Ken Burns push-in
+```
+A `broll` scene: `{"s":"5:0","e":"6:4e","mode":"broll","broll":{"name":"van","from":0,"kb":1},"tin":"whip"}` — `from` = start offset inside the clip, `kb` = push-in strength (0 = none).
+
+**Transitions** (`tin` on the scene being entered): `whip` (fast slide with motion smear — talking ↔ b-roll, energy), `dissolve` (soft cross-fade, e.g. the face fading into a warehouse shot), `zoom` (punch-in), `flash` (white flash, a reveal), `cut` (default whenever b-roll is involved), `morph` (default between talking layouts: the face card glides). Use whip/zoom for ads, dissolve/morph for calm stories; don't put a fancy transition on every cut — 3–5 per minute.
 
 Alternate layouts — 3–6 graphic scenes in a 60–90 s reel is plenty; most of the time the face should be on screen. Every graphic must **prove the sentence**, landing on the spoken word, not decorate it. Panel types and design ideas: `references/scenes.md`.
 
@@ -109,12 +124,17 @@ Alternate layouts — 3–6 graphic scenes in a 60–90 s reel is plenty; most o
 ```
 Scene `s`/`e` may also be refs. `"nocap": true` hides captions in a scene. Any number or name shown on screen must come from what the speaker said (or a source they gave) — never invent one.
 
-### 6. Preview → fix → render
+### 6. Storyboard → the user approves → render  (mandatory gate)
+
+**Never run the full render before the user approves the storyboard** — the user asked for this explicitly. First check it yourself, then send it:
 
 ```bash
-node <skill>/scripts/render.mjs <work> --preview 2,8.4,19.9,24.2,48.5,84.5   # → <work>/sheet.jpg (one 3×2 sheet)
+node <skill>/scripts/render.mjs <work> --preview 2,8.4,19.9,24.2,48.5,84.5   # your own check → <work>/sheet.jpg (3×2)
+node <skill>/scripts/render.mjs <work> --storyboard                           # → storyboard.png + storyboard.md
 ```
-Pick one time inside each graphic scene + the hook + the ending. Read the sheet: text cut off, overlaps, caption over the face or over burned-in text, wrong font, head cropped. Fix and preview again. Show the user the sheet only when a visual decision is theirs.
+Read the sheet first: text cut off, overlaps, caption over the face or over burned-in text, wrong font, head cropped — fix and re-check. Then `--storyboard` renders one **real frame per scene** (verse/hadith get their own 🔒 card) with its time, layout, transition, the words said, and your `note` (write one short Arabic `note` per scene in scenes.json: what the graphic or b-roll shows). Send `storyboard.png` to the user plus the cover idea (title + frame) and the post caption, and ask in one line: «هذا الستوري بورد — أوافق وأبدأ الرسم، ولا تبي تغيّر شي؟ قل رقم المشهد». Then **stop and wait**.
+- Changes → edit scenes.json / cover.json / fixes.json, regenerate the storyboard, send again.
+- Approved («تمام»، «يلا»، «موافق»، 👍) → render. The approval covers this storyboard only; a big change after it gets a new storyboard.
 
 ```bash
 node <skill>/scripts/render.mjs <work>              # all frames → out/ (background; resumable; --force redraws)
@@ -150,3 +170,4 @@ python3 <skill>/scripts/encode.py <work> <out.mp4> --cover
 | final video much shorter than the source | a missing frame in `out/` stops the image sequence → encode.py now refuses; re-run render.mjs |
 | caption sitting on text already burned into the video | move it with `capY`, or switch that moment to `down` |
 | user unhappy the verse got a caption / effect | protect the range (step 2) — and protect anything the user calls sacred |
+| user had to wait for a render they didn't want | always storyboard + approval before the full render (step 6) |

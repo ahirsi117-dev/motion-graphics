@@ -10,6 +10,7 @@ Modes and the graphic box the panel is drawn in:
 | `down` | wide card from y 760 | x 90–990 · y 170–560 | ~665, above the card |
 | `lower` | small card at the bottom | x 70–1010 · y 150–1170 | ~1255, above the card |
 | `off` | hidden (voice continues) | x 70–1010 · y 150–1550 | ~1460 |
+| `broll` | full-screen footage / still (`broll:{name, from, kb}`) | like `full` — use `pills` / `bignum` on top | `theme.capY` |
 
 Layout changes animate over 0.4 s. A panel fades in after the card has moved and fades out 0.2 s before the scene ends. Override the box per panel with `"box":{x,y,w,h}`.
 
@@ -24,6 +25,10 @@ Layout changes animate over 0.4 s. A panel fades in after the card has moved and
 | `steps` | `title?, titleAt?, items:[{t, at, hot?}], loop?, loopAt?` | describes a process or a repeating pattern (A ← B ← C, dashed loop back) |
 | `people` | `total?, hot, at, number?, label?, labelAt?` | says a share of people («90% مسلمين», «4 من كل 10») — use mode `lower` |
 | `image` | `src, at?, caption?` | shows a screenshot, logo, b-roll still (file in `<work>`, kept at its own aspect ratio) |
+| `pills` | `items:[{t, at}], y?, color?, size?` | lists offers/services in an ad (glossy tags stacked vertically: «بلاك فرايدي», «الشحن الجوي») |
+| `bignum` | `text, at, y?, size?, color?` | one huge number or word above the head: a founding year «1987», «4 ساعات», «24/7» |
+
+Transitions are set per scene with `tin`: `whip` · `dissolve` · `zoom` · `flash` · `cut` · `morph` (see SKILL.md step 5). `"dir":"right"` makes a whip go the other way.
 
 Several panels in one scene: `"panels":[{…},{…}]` (keep one hero, at most one support).
 
