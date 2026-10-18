@@ -1,6 +1,6 @@
 ---
 name: montage-types
-description: Applies a chosen montage (video editing) technique to a user's video — Jump Cut, Cross Cut, Match Cut, Smash Cut, Beat Sync, J/L Cut, Insert Shot, Cutaway, Shot-Reverse-Shot, Speed Ramp, Punch-in Zoom, and Whip/Wipe transitions. Before editing, it shows the user all 12 techniques with a short plain-language explanation next to each, and asks which one to apply. It does not recommend. Then it renders the result with ffmpeg. Use when the user asks to apply, implement, or "سوّ" / "نفذ" / "طبّق" a montage type or editing style ("نوع مونتاج", "قص قفزي", "jump cut", "beat sync", "مونتاج على الإيقاع", "انتقالات", "سلو موشن", "زوم"), or asks which montage type suits their video.
+description: Applies a chosen montage (video editing) technique to a user's video — Jump Cut, Cross Cut, Match Cut, Smash Cut, Beat Sync, J/L Cut, Insert Shot, Cutaway, Shot-Reverse-Shot, Speed Ramp, Punch-in Zoom, and Whip/Wipe transitions. Before editing, it shows the user all 12 techniques with a short plain-language explanation next to each, and asks which one to apply. It does not recommend. Then it renders the result with ffmpeg. Use when the user asks to apply, implement, or "سوّ" / "نفذ" / "طبّق" a montage type or editing style ("نوع مونتاج", "قص قفزي", "jump cut", "beat sync", "مونتاج على الإيقاع", "انتقالات", "سلو موشن", "زوم"), or asks to see the list of montage types.
 ---
 
 # Montage types
