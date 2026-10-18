@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Montage · المونتاج</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0b0b0e; color: #f4f4f6; font-family: system-ui, "Tajawal", sans-serif; line-height: 1.6; }
+  button { font: inherit; cursor: pointer; border-radius: 12px; }
+  button:disabled { opacity: .35; cursor: not-allowed; }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 28px 16px 56px; }
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; }
+  .logo { width: 34px; height: 34px; border-radius: 10px; background: var(--grad); }
+  .tools { display: flex; align-items: center; gap: 12px; }
+  .muted { color: #9a9aa6; }
+  .small { font-size: 13px; }
+  .langbtn { background: transparent; color: #f4f4f6; border: 1px solid #3a3a46; padding: 6px 14px; font-size: 13px; font-weight: 700; }
+  .stepper { display: flex; align-items: center; gap: 6px; margin-bottom: 24px; }
+  .stp { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .dot { flex: none; width: 28px; height: 28px; border-radius: 14px; text-align: center; line-height: 28px; font-size: 13px; font-weight: 700; background: #26262e; color: #9a9aa6; }
+  .dot.on { background: var(--grad); color: #f4f4f6; }
+  .dot.done { background: #ff9f1c; color: #f4f4f6; }
+  .stp-label { font-size: 13px; color: #9a9aa6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stp-label.on, .stp-label.done { color: #f4f4f6; }
+  .stp-line { flex: 1; height: 2px; background: #26262e; margin-inline-start: 4px; }
+  .stp-line.done { background: #ff9f1c; }
+  .card { background: #16161b; border: 1px solid #26262e; border-radius: 18px; padding: 28px; }
+  .card h2 { margin: 0 0 4px; font-size: 22px; }
+  .card p.sub { margin: 0 0 20px; color: #9a9aa6; }
+  .drop { border: 2px dashed #3a3a46; border-radius: 14px; padding: 36px 16px; text-align: center; background: #101014; }
+  .ghost { background: transparent; color: #f4f4f6; border: 1px solid #3a3a46; padding: 10px 18px; }
+  .primary { background: var(--grad); color: #fff; border: 0; padding: 12px 26px; font-weight: 700; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .end { display: flex; justify-content: flex-end; margin-top: 24px; }
+  .techs { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+  .tech { display: flex; gap: 10px; align-items: flex-start; text-align: start; background: #101014; color: inherit; border: 1.5px solid #26262e; padding: 12px; }
+  .tech.on { background: rgba(166,77,255,.10); border-color: #a64dff; }
+  .tech.off { opacity: .4; }
+  .num { flex: none; min-width: 24px; height: 24px; line-height: 24px; border-radius: 12px; text-align: center; font-size: 12px; font-weight: 700; color: #fff; background: #2e2e38; }
+  .tech.on .num { background: var(--grad); }
+  .tname { display: block; font-size: 15px; font-weight: 700; }
+  .tdesc { display: block; color: #9a9aa6; font-size: 13px; line-height: 1.5; }
+  .twhy { display: block; color: #ff9f1c; font-size: 13px; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 13px; font-weight: 700; }
+  .pct { font-size: 56px; font-weight: 800; line-height: 1; text-align: center; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bar { height: 12px; background: #26262e; border-radius: 999px; overflow: hidden; margin: 24px 0; }
+  .bar > div { height: 100%; background: var(--grad); transition: width .3s; }
+  .srow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; padding: 10px 14px; border-radius: 12px; background: #101014; border: 1px solid #26262e; margin-bottom: 8px; }
+  .srow.cur { background: rgba(166,77,255,.10); border-color: #a64dff; }
+  .smark { flex: none; width: 24px; height: 24px; border-radius: 12px; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700; background: #3a3a46; color: #fff; }
+  .smark.done { background: #ff9f1c; }
+  .smark.cur { background: var(--grad); }
+  .sname { flex: 1; font-weight: 600; color: #9a9aa6; }
+  .srow.cur .sname, .srow.done .sname { color: #f4f4f6; }
+  .sstate { font-size: 13px; color: #9a9aa6; }
+  .sbar { flex-basis: 100%; height: 6px; background: #26262e; border-radius: 999px; overflow: hidden; }
+  .sbar > div { height: 100%; background: #ff9f1c; transition: width .3s; }
+  .srow.cur .sbar > div { background: var(--grad); }
+  .ctrl { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+  .danger { background: transparent; color: #ff3d8b; border: 1px solid #ff3d8b; padding: 10px 18px; }
+  .log { background: #0b0b0e; color: #cfd0d8; border: 1px solid #26262e; border-radius: 12px; padding: 12px 14px; font-size: 13px; height: 130px; overflow: auto; margin-top: 20px; }
+  .log div { margin: 0; }
+  .err { color: #ff7fb0; font-size: 14px; margin-top: 12px; min-height: 20px; }
+  .preview { margin: 0 auto; width: 220px; aspect-ratio: 9 / 16; background: #0b0b0e; border: 1px solid #26262e; border-radius: 16px; overflow: hidden; }
+  .preview video { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .center { text-align: center; }
+  :root { --grad: linear-gradient(135deg,#ff3d8b,#a64dff 55%,#ff9f1c); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div class="brand"><span class="logo"></span><span id="appName"></span></div>
+    <div class="tools">
+      <span id="limits" class="small muted"></span>
+      <button id="langBtn" class="langbtn"></button>
+    </div>
+  </div>
+  <div id="stepper" class="stepper"></div>
+  <div id="stage"></div>
+</div>
+
+<script>
+const T = {
+  ar: {
+    dir: 'rtl', langBtn: 'English', appName: 'المونتاج', limits: 'محلي · 3 دقايق · 200 ميجا',
+    stages: ['رفع', 'الأنواع', 'التشغيل', 'النتيجة'],
+    uploadTitle: 'ارفع الفيديو', uploadSub: 'اختار الفيديو اللي تبي تشتغل عليه.',
+    noFile: 'ما اخترت فيديو بعد', uploading: 'جاري الرفع...', chooseVideo: 'اختر فيديو',
+    durText: d => Math.round(d) + ' ثانية',
+    techTitle: 'اختر أنواع المونتاج', techSub: 'اختار واحد أو أكثر. التطبيق يطبقها بالترتيب اللي اخترته.',
+    notYet: 'غير متوفر', none: 'ما اخترت نوع بعد', selected: n => 'اخترت ' + n + ' نوع',
+    back: 'رجوع', start: 'ابدأ المونتاج', next: 'التالي',
+    runTitle: 'المونتاج يشتغل', stop: 'إيقاف', resume: 'متابعة', cancelJob: 'إلغاء العملية كاملة',
+    statusIdle: 'جاهز', statusRunning: 'يشتغل', statusStopped: 'موقوف', statusDone: 'خلص', statusFailed: 'فشل',
+    stateDone: 'خلصت', stateRunning: 'تشتغل', stateStopped: 'موقوفة', stateFailed: 'فشلت', stateNext: 'بعدين',
+    stepOf: (n, total, name) => 'الخطوة ' + n + ' من ' + total + ': ' + name,
+    allDone: 'كل الخطوات خلصت',
+    resultTitle: 'الناتج جاهز', preview: 'معاينة الفيديو', newJob: 'عملية جديدة', download: 'تنزيل الفيديو',
+    resultText: (n, file) => 'طبّقنا ' + n + ' نوع على ' + file,
+    log: {
+      upload: 'تم رفع الفيديو', started: 'بدأت العملية: ', step: (n, name) => 'خطوة ' + n + ': ' + name,
+      stepDone: n => 'انتهت الخطوة ' + n, allDone: 'اكتملت كل الخطوات',
+      stopped: n => 'تم الإيقاف عند الخطوة ' + n, resumed: n => 'متابعة من الخطوة ' + n,
+      failed: (n, r) => 'فشلت الخطوة ' + n + (r ? ' (' + reasonText(r, 'ar') + ')' : '')
+    },
+    err: {
+      too_big: 'الملف أكبر من 200 ميجا، اختر ملف أصغر.', too_long: 'الحد الأقصى 3 دقايق.',
+      unreadable: 'ما قدرت أقرا ملف الفيديو.', empty: 'الملف فاضي.', busy: 'العملية شغالة أو موقوفة.',
+      need_steps: 'اختر نوع مونتاج متوفر واحد على الأقل.', not_running: 'ما فيه عملية شغالة.',
+      not_stopped: 'ما تقدر تكمل إلا بعد الإيقاف.', not_found: 'العملية ما لقيتها، يمكن انلغت.',
+      network: 'ما قدرت أتواصل مع السيرفر.'
+    },
+    reason: {no_speech: 'ما لقيت كلام في الفيديو', too_many_segments: 'فيه سكات كثير جداً', ffmpeg: 'خطأ في ffmpeg'}
+  },
+  en: {
+    dir: 'ltr', langBtn: 'عربي', appName: 'Montage', limits: 'Local · 3 min · 200 MB',
+    stages: ['Upload', 'Techniques', 'Run', 'Result'],
+    uploadTitle: 'Upload the video', uploadSub: 'Pick the clip you want to edit.',
+    noFile: 'No video yet', uploading: 'Uploading...', chooseVideo: 'Choose video',
+    durText: d => Math.round(d) + ' s',
+    techTitle: 'Pick the techniques', techSub: 'Choose one or more. Applied in the order you pick.',
+    notYet: 'Not yet', none: 'None selected', selected: n => n + ' selected',
+    back: 'Back', start: 'Start montage', next: 'Next',
+    runTitle: 'Montage running', stop: 'Stop', resume: 'Resume', cancelJob: 'Cancel job',
+    statusIdle: 'Ready', statusRunning: 'Running', statusStopped: 'Stopped', statusDone: 'Done', statusFailed: 'Failed',
+    stateDone: 'Done', stateRunning: 'Running', stateStopped: 'Stopped', stateFailed: 'Failed', stateNext: 'Next',
+    stepOf: (n, total, name) => 'Step ' + n + ' of ' + total + ': ' + name,
+    allDone: 'All steps done',
+    resultTitle: 'Result ready', preview: 'Video preview', newJob: 'New job', download: 'Download video',
+    resultText: (n, file) => 'Applied ' + n + ' technique(s) to ' + file,
+    log: {
+      upload: 'Video uploaded', started: 'Started: ', step: (n, name) => 'Step ' + n + ': ' + name,
+      stepDone: n => 'Step ' + n + ' done', allDone: 'All steps done',
+      stopped: n => 'Stopped at step ' + n, resumed: n => 'Resumed from step ' + n,
+      failed: (n, r) => 'Step ' + n + ' failed' + (r ? ' (' + reasonText(r, 'en') + ')' : '')
+    },
+    err: {
+      too_big: 'The file is over 200 MB. Pick a smaller one.', too_long: 'The limit is 3 minutes.',
+      unreadable: "Couldn't read that video file.", empty: 'The file is empty.', busy: 'A job is running or stopped.',
+      need_steps: 'Pick at least one available technique.', not_running: 'No job is running.',
+      not_stopped: 'You can resume only after a stop.', not_found: 'Job not found. It may have been cancelled.',
+      network: "Couldn't reach the server."
+    },
+    reason: {no_speech: 'no speech found in the video', too_many_segments: 'too many silences', ffmpeg: 'ffmpeg error'}
+  }
+};
+const GRAD = 'linear-gradient(135deg,#ff3d8b,#a64dff 55%,#ff9f1c)';
+
+const S = {
+  lang: 'ar',
+  stage: 1,
+  techs: [],
+  picked: [],
+  job: null,
+  fileName: '',
+  uploading: false,
+  err: '',
+  timer: null,
+};
+
+const $ = (id) => document.getElementById(id);
+const L = () => T[S.lang];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const techById = (id) => S.techs.find(t => t.id === id);
+const techName = (t) => (S.lang === 'ar' ? t.ar : t.en);
+const idName = (id) => { const t = techById(id); return t ? techName(t) : id; };
+const reasonText = (r, lang) => T[lang].reason[r] || r;
+
+async function api(path, opts = {}) {
+  let r;
+  try { r = await fetch(path, opts); } catch (e) { throw new Error('network'); }
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'network');
+  return data;
+}
+
+function logLine(e) {
+  const g = L().log;
+  switch (e.k) {
+    case 'upload': return g.upload;
+    case 'started': return g.started + e.ids.map(idName).join(' → ');
+    case 'step': return g.step(e.n, idName(e.id));
+    case 'stepDone': return g.stepDone(e.n);
+    case 'allDone': return g.allDone;
+    case 'stopped': return g.stopped(e.n);
+    case 'resumed': return g.resumed(e.n);
+    case 'failed': return g.failed(e.n, e.reason);
+    default: return '';
+  }
+}
+
+function statusKey() {
+  const s = S.job ? S.job.status : 'uploaded';
+  return s === 'uploaded' ? 'idle' : s;
+}
+
+function renderHeader() {
+  document.documentElement.lang = S.lang;
+  document.documentElement.dir = L().dir;
+  $('appName').textContent = L().appName;
+  $('limits').textContent = L().limits;
+  $('langBtn').textContent = L().langBtn;
+}
+
+function renderStepper() {
+  const parts = L().stages.map((label, i) => {
+    const n = i + 1;
+    const on = S.stage === n, done = S.stage > n;
+    const cls = on ? 'on' : done ? 'done' : '';
+    const line = i < L().stages.length - 1 ? `<span class="stp-line ${done ? 'done' : ''}"></span>` : '';
+    return `<div class="stp"><span class="dot ${cls}">${done ? '✓' : n}</span>
+      <span class="stp-label ${cls}">${esc(label)}</span>${line}</div>`;
+  });
+  $('stepper').innerHTML = parts.join('');
+}
+
+function stageUpload() {
+  const t = L();
+  const info = S.uploading ? t.uploading
+    : S.job ? `<div style="font-weight:700;font-size:16px">${esc(S.fileName)}</div>
+               <div class="muted small" style="margin-bottom:14px">${t.durText(S.job.duration)}</div>`
+    : `<div class="muted" style="margin-bottom:14px">${t.noFile}</div>`;
+  return `<section class="card">
+    <h2>${t.uploadTitle}</h2>
+    <p class="sub">${t.uploadSub}</p>
+    <div class="drop">
+      ${info}
+      <button class="ghost" id="pickBtn" ${S.uploading ? 'disabled' : ''}>${t.chooseVideo}</button>
+      <input id="fileIn" type="file" accept="video/*" hidden>
+    </div>
+    <div class="err">${esc(S.err)}</div>
+    <div class="end"><button class="primary" id="nextBtn" ${S.job ? '' : 'disabled'}>${t.next}</button></div>
+  </section>`;
+}
+
+function stageTechs() {
+  const t = L();
+  const cards = S.techs.map(x => {
+    const n = S.picked.indexOf(x.id);
+    const on = n >= 0;
+    const why = x.available ? '' : `<span class="twhy">${t.notYet}: ${esc(S.lang === 'ar' ? x.why_ar : x.why_en)}</span>`;
+    const desc = S.lang === 'ar' ? x.desc_ar : x.desc_en;
+    return `<button class="tech ${on ? 'on' : ''} ${x.available ? '' : 'off'}" data-id="${x.id}" ${x.available ? '' : 'disabled'}>
+      <span class="num">${on ? n + 1 : ''}</span>
+      <span><span class="tname">${esc(techName(x))}</span><span class="tdesc">${esc(desc)}</span>${why}</span>
+    </button>`;
+  }).join('');
+  const count = S.picked.length ? t.selected(S.picked.length) : t.none;
+  return `<section class="card">
+    <h2>${t.techTitle}</h2>
+    <p class="sub">${t.techSub}</p>
+    <div class="techs">${cards}</div>
+    <div class="row">
+      <button class="ghost" id="backBtn">${t.back}</button>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="muted small">${count}</span>
+        <button class="primary" id="startBtn" ${S.picked.length && S.job ? '' : 'disabled'}>${t.start}</button>
+      </div>
+    </div>
+    <div class="err">${esc(S.err)}</div>
+  </section>`;
+}
+
+function stageRun() {
+  const t = L();
+  return `<section class="card">
+    <div class="row" style="margin-top:0">
+      <h2 style="margin:0">${t.runTitle}</h2>
+      <span id="status" class="badge"></span>
+    </div>
+    <div style="margin:28px 0 8px">
+      <div id="pct" class="pct">0%</div>
+      <div id="stext" class="muted center" style="margin-top:8px;min-height:24px"></div>
+    </div>
+    <div class="bar"><div id="bar" style="width:0"></div></div>
+    <div id="steps"></div>
+    <div class="ctrl">
+      <button class="ghost" id="stopBtn">${t.stop}</button>
+      <button class="ghost" id="resumeBtn">${t.resume}</button>
+      <button class="danger" id="cancelBtn">${t.cancelJob}</button>
+    </div>
+    <div id="log" class="log"></div>
+    <div class="err" id="runErr"></div>
+    <div class="end"><button class="primary" id="nextBtn" disabled>${t.next}</button></div>
+  </section>`;
+}
+
+function stageResult() {
+  const t = L();
+  const file = S.fileName;
+  const url = S.job ? `/api/jobs/${S.job.id}/media/final.mp4` : '';
+  return `<section class="card center">
+    <h2>${t.resultTitle}</h2>
+    <p class="sub">${esc(t.resultText(S.picked.length, file))}</p>
+    <div class="preview"><video src="${url}" controls playsinline></video></div>
+    <div class="ctrl" style="justify-content:center">
+      <button class="ghost" id="newBtn">${t.newJob}</button>
+      <a class="primary" href="${url}" download="montage.mp4" style="text-decoration:none;display:inline-block;padding:12px 26px;font-weight:700">${t.download}</a>
+    </div>
+  </section>`;
+}
+
+function renderStage() {
+  const html = { 1: stageUpload, 2: stageTechs, 3: stageRun, 4: stageResult }[S.stage]();
+  $('stage').innerHTML = html;
+  bindStage();
+  updateRun();
+}
+
+function bindStage() {
+  if (S.stage === 1) {
+    $('pickBtn').onclick = () => $('fileIn').click();
+    $('fileIn').onchange = (ev) => upload(ev.target.files[0]);
+    $('nextBtn').onclick = () => { S.err = ''; S.stage = 2; renderAll(); };
+  }
+  if (S.stage === 2) {
+    document.querySelectorAll('.tech[data-id]').forEach(b => b.onclick = () => {
+      const id = b.dataset.id;
+      S.picked = S.picked.includes(id) ? S.picked.filter(x => x !== id) : [...S.picked, id];
+      renderAll();
+    });
+    $('backBtn').onclick = () => { S.err = ''; S.stage = 1; renderAll(); };
+    $('startBtn').onclick = startJob;
+  }
+  if (S.stage === 3) {
+    $('stopBtn').onclick = () => act('stop');
+    $('resumeBtn').onclick = () => act('resume');
+    $('cancelBtn').onclick = cancelJob;
+    $('nextBtn').onclick = () => { if (S.job && S.job.status === 'done') { S.stage = 4; renderAll(); } };
+  }
+  if (S.stage === 4) {
+    $('newBtn').onclick = newJob;
+  }
+}
+
+function updateRun() {
+  if (S.stage !== 3 || !S.job) return;
+  const j = S.job;
+  const st = statusKey();
+  const t = L();
+  const total = j.steps.length || 1;
+  const overall = j.status === 'done' ? 100 : ((j.index + j.progress / 100) / total) * 100;
+  const statusText = {idle: t.statusIdle, running: t.statusRunning, stopped: t.statusStopped, done: t.statusDone, failed: t.statusFailed}[st] || '';
+  const colors = {idle: ['#26262e', '#f4f4f6'], running: ['rgba(166,77,255,.18)', '#c99bff'], stopped: ['rgba(255,61,139,.16)', '#ff7fb0'],
+                  done: ['rgba(255,159,28,.16)', '#ffb84d'], failed: ['rgba(255,61,139,.16)', '#ff7fb0']};
+  const [bg, fg] = colors[st] || colors.idle;
+  $('status').textContent = statusText;
+  $('status').style.background = bg;
+  $('status').style.color = fg;
+  $('pct').textContent = Math.round(overall) + '%';
+  $('bar').style.width = Math.round(overall) + '%';
+  const curIdx = j.index;
+  $('stext').textContent = j.status === 'done' ? t.allDone
+    : j.steps.length ? t.stepOf(curIdx + 1, j.steps.length, idName(j.steps[Math.min(curIdx, j.steps.length - 1)])) : '';
+  $('steps').innerHTML = j.steps.map((id, i) => {
+    const done = i < curIdx || j.status === 'done';
+    const isCur = i === curIdx && j.status !== 'done';
+    const width = done ? 100 : isCur ? Math.round(j.progress) : 0;
+    const state = done ? t.stateDone : isCur ? (j.status === 'stopped' ? t.stateStopped : j.status === 'failed' ? t.stateFailed : t.stateRunning) : t.stateNext;
+    return `<div class="srow ${done ? 'done' : ''} ${isCur ? 'cur' : ''}">
+      <span class="smark ${done ? 'done' : isCur ? 'cur' : ''}">${done ? '✓' : i + 1}</span>
+      <span class="sname">${esc(idName(id))}</span>
+      <span class="sstate">${state}</span>
+      <div class="sbar"><div style="width:${width}%"></div></div>
+    </div>`;
+  }).join('');
+  $('log').innerHTML = j.log.map(e => `<div>${esc(logLine(e))}</div>`).join('');
+  $('log').scrollTop = $('log').scrollHeight;
+  $('stopBtn').disabled = j.status !== 'running';
+  $('resumeBtn').disabled = !(j.status === 'stopped' || j.status === 'failed');
+  $('nextBtn').disabled = j.status !== 'done';
+}
+
+function renderAll() {
+  renderHeader();
+  renderStepper();
+  renderStage();
+}
+
+function startPolling() {
+  stopPolling();
+  S.timer = setInterval(refresh, 500);
+}
+
+function stopPolling() {
+  clearInterval(S.timer);
+  S.timer = null;
+}
+
+async function refresh() {
+  if (!S.job) return stopPolling();
+  try {
+    S.job = await api(`/api/jobs/${S.job.id}`);
+    updateRun();
+    if (S.job.status !== 'running') stopPolling();
+  } catch (e) {
+    stopPolling();
+    $('runErr').textContent = L().err[e.message] || e.message;
+  }
+}
+
+async function upload(file) {
+  if (!file) return;
+  S.err = '';
+  if (file.size > 200 * 1024 * 1024) { S.err = L().err.too_big; return renderAll(); }
+  S.uploading = true;
+  S.fileName = file.name;
+  renderAll();
+  try {
+    S.job = await api(`/api/jobs?name=${encodeURIComponent(file.name)}`, {
+      method: 'POST', body: file, headers: {'Content-Type': file.type || 'video/mp4'},
+    });
+    S.picked = [];
+  } catch (e) {
+    S.job = null;
+    S.err = L().err[e.message] || e.message;
+  } finally {
+    S.uploading = false;
+    renderAll();
+  }
+}
+
+async function startJob() {
+  S.err = '';
+  try {
+    S.job = await api(`/api/jobs/${S.job.id}/start`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({steps: S.picked}),
+    });
+    S.stage = 3;
+    renderAll();
+    startPolling();
+  } catch (e) {
+    S.err = L().err[e.message] || e.message;
+    renderAll();
+  }
+}
+
+async function act(name) {
+  try {
+    S.job = await api(`/api/jobs/${S.job.id}/${name}`, {method: 'POST'});
+    updateRun();
+    startPolling();
+  } catch (e) {
+    $('runErr').textContent = L().err[e.message] || e.message;
+  }
+}
+
+async function cancelJob() {
+  if (!S.job) return;
+  try {
+    await api(`/api/jobs/${S.job.id}/cancel`, {method: 'POST'});
+  } catch (e) { /* already gone */ }
+  stopPolling();
+  S.job = null;
+  S.picked = [];
+  S.fileName = '';
+  S.stage = 1;
+  S.err = '';
+  renderAll();
+}
+
+function newJob() {
+  stopPolling();
+  S.job = null;
+  S.picked = [];
+  S.fileName = '';
+  S.stage = 1;
+  S.err = '';
+  renderAll();
+}
+
+$('langBtn').onclick = () => { S.lang = S.lang === 'ar' ? 'en' : 'ar'; renderAll(); };
+
+(async () => {
+  try {
+    S.techs = await api('/api/techniques');
+  } catch (e) {
+    S.err = L().err[e.message] || e.message;
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
