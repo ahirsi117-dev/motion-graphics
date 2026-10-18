@@ -203,11 +203,6 @@ Set `O` to the time in clip A where the transition starts (clip A duration minus
 
 ---
 
-## Notes for the recommendation step
+## Notes on applying a technique
 
-- Jump Cut and Smash Cut work on almost any footage with speech or a change in energy.
-- Beat Sync needs music. Without it, do not recommend it.
-- Shot-Reverse-Shot needs two angles. Without two, do not recommend it.
-- Speed Ramp and Punch-in Zoom work on any footage with a clear moment to emphasise.
-- Whip / Wipe fits any two adjacent shots.
-- Cross Cut and Match Cut need two or more clips with a shared shape, motion, or parallel event.
+- If the user picks a technique the footage cannot support (for example Beat Sync with no music, or Shot-Reverse-Shot with one camera), say so in one line and ask whether to continue anyway. Do not refuse it on your own.
