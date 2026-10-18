@@ -4,6 +4,9 @@
 Run:   python3 server.py        then open http://127.0.0.1:8765
 Needs: ffmpeg and ffprobe on PATH. Standard library only.
 Limits: 200 MB and 3 minutes per upload.
+
+The server sends codes and structured log events, not sentences, so the page can show
+Arabic or English in the language the user picked.
 """
 import json
 import os
@@ -32,43 +35,55 @@ PUNCH_AMOUNT = 0.12 # 1.0 -> 1.12 zoom at the peak
 # Every montage type the user can pick. "why" is shown when the type is not built yet.
 TECHNIQUES = [
     {"id": "jump_cut", "ar": "القطع القفزي", "en": "Jump Cut",
-     "desc": "يقص السكتات والتوقفات عشان الكلام يكون سريع ومتصل."},
+     "desc_ar": "يقص السكتات والتوقفات عشان الكلام يكون سريع ومتصل.",
+     "desc_en": "Cuts out pauses and silences so speech stays tight."},
     {"id": "cross_cut", "ar": "القطع المتوازي", "en": "Cross Cut",
-     "desc": "يتنقل بين حدثين صاير بنفس الوقت، فيحس المشاهد بالتوتر أو المقارنة.",
-     "why": "يحتاج أكثر من ملف"},
+     "desc_ar": "يتنقل بين حدثين صاير بنفس الوقت.",
+     "desc_en": "Jumps between two events happening at the same time.",
+     "why_ar": "يحتاج أكثر من ملف", "why_en": "needs more than one file"},
     {"id": "match_cut", "ar": "القطع المتطابق", "en": "Match Cut",
-     "desc": "ينتقل من لقطة لأخرى تشبهها بالشكل أو الحركة.",
-     "why": "يحتاج أكثر من ملف"},
+     "desc_ar": "ينتقل من لقطة لأخرى تشبهها بالشكل أو الحركة.",
+     "desc_en": "Moves from one shot to another that matches in shape or motion.",
+     "why_ar": "يحتاج أكثر من ملف", "why_en": "needs more than one file"},
     {"id": "smash_cut", "ar": "القطع الصدمي", "en": "Smash Cut",
-     "desc": "يقفز من هدوء مفاجئ لمشهد قوي، والمفاجأة هي المعنى.",
-     "why": "يحتاج أكثر من ملف"},
+     "desc_ar": "يقفز من هدوء مفاجئ لمشهد قوي.",
+     "desc_en": "Jumps from sudden quiet into a loud moment.",
+     "why_ar": "يحتاج أكثر من ملف", "why_en": "needs more than one file"},
     {"id": "beat_sync", "ar": "مونتاج الإيقاع", "en": "Beat Sync",
-     "desc": "يقطّع اللقطات على نبضات الموسيقى.",
-     "why": "يحتاج تحليل الموسيقى، ما انضاف بعد"},
+     "desc_ar": "يقطّع اللقطات على نبضات الموسيقى.",
+     "desc_en": "Cuts shots on the beats of the music.",
+     "why_ar": "يحتاج تحليل الموسيقى", "why_en": "needs music analysis"},
     {"id": "jl_cut", "ar": "القطع المقسوم (J/L)", "en": "J/L Cut",
-     "desc": "الصوت يبدأ قبل الصورة أو يستمر بعدها، والانتقال يصير ناعم.",
-     "why": "يحتاج أكثر من ملف"},
+     "desc_ar": "الصوت يبدأ قبل الصورة أو يستمر بعدها.",
+     "desc_en": "Audio starts before the picture or continues after it.",
+     "why_ar": "يحتاج أكثر من ملف", "why_en": "needs more than one file"},
     {"id": "insert_shot", "ar": "لقطة الإدراج", "en": "Insert Shot",
-     "desc": "لقطة قريبة لتفصيلة مهمة تنحط داخل المشهد لثواني.",
-     "why": "يحتاج لقطة ثانية"},
+     "desc_ar": "لقطة قريبة لتفصيلة مهمة تنحط داخل المشهد.",
+     "desc_en": "A close shot of a key detail inserted into the scene.",
+     "why_ar": "يحتاج لقطة ثانية", "why_en": "needs a second shot"},
     {"id": "cutaway", "ar": "لقطة التغطية", "en": "Cutaway",
-     "desc": "تغطي الصورة بلقطة من شي ثاني والصوت يكمل من المتحدث.",
-     "why": "يحتاج لقطة ثانية"},
+     "desc_ar": "تغطي الصورة بلقطة من شي ثاني.",
+     "desc_en": "Covers the picture with a shot of something else.",
+     "why_ar": "يحتاج لقطة ثانية", "why_en": "needs a second shot"},
     {"id": "shot_reverse", "ar": "القطع بالانعكاس", "en": "Shot-Reverse-Shot",
-     "desc": "تتبادل بين شخصين أثناء الحوار.",
-     "why": "يحتاج زاويتين"},
+     "desc_ar": "تتبادل بين شخصين أثناء الحوار.",
+     "desc_en": "Alternates between two people during a conversation.",
+     "why_ar": "يحتاج زاويتين", "why_en": "needs two angles"},
     {"id": "speed_ramp", "ar": "تغيير السرعة", "en": "Speed Ramp",
-     "desc": "تبطّئ الثلث الأوسط من الفيديو، فتتأكد اللحظة المهمة."},
+     "desc_ar": "تبطّئ الثلث الأوسط من الفيديو.",
+     "desc_en": "Slows down the middle third of the video."},
     {"id": "punch_zoom", "ar": "الزوم المفاجئ", "en": "Punch-in Zoom",
-     "desc": "تكبّر الصورة بنبضة كل 6 ثوانٍ، فينتبه المشاهد."},
+     "desc_ar": "تكبّر الصورة بنبضة كل 6 ثوانٍ.",
+     "desc_en": "Pulses a zoom into the picture every 6 seconds."},
     {"id": "whip_wipe", "ar": "الانتقال بالمسح", "en": "Whip / Wipe",
-     "desc": "تمسح الشاشة للمشهد الجديد.",
-     "why": "يحتاج أكثر من ملف"},
+     "desc_ar": "تمسح الشاشة للمشهد الجديد.",
+     "desc_en": "Wipes the screen into the next scene.",
+     "why_ar": "يحتاج أكثر من ملف", "why_en": "needs more than one file"},
 ]
 
 
 class StepError(Exception):
-    pass
+    """Carries a reason code the page turns into text."""
 
 
 def run_capture(cmd):
@@ -80,7 +95,7 @@ def read_info(path):
                      "-show_entries", "stream=width,height,r_frame_rate:format=duration",
                      "-of", "json", str(path)])
     if r.returncode:
-        raise ValueError("ملف الفيديو ما يُقرأ")
+        raise ValueError("unreadable")
     d = json.loads(r.stdout)
     s = d["streams"][0]
     num, den = s["r_frame_rate"].split("/")
@@ -110,9 +125,9 @@ def build_jump_cut(job, inp, out):
     if job.duration - cur >= 0.15:
         keep.append((max(0.0, cur - PAD), job.duration))
     if not keep:
-        raise StepError("ما لقيت أي كلام في الفيديو")
+        raise StepError("no_speech")
     if len(keep) > 400:
-        raise StepError("الفيديو فيه سكات كثير جداً، ما يتقطع بهالطريقة")
+        raise StepError("too_many_segments")
     parts, labels = [], ""
     for i, (a, b) in enumerate(keep):
         parts.append(f"[0:v]trim=start={a:.3f}:end={b:.3f},setpts=PTS-STARTPTS[v{i}];"
@@ -171,25 +186,25 @@ class Job:
         self.index = 0            # next step to run
         self.current = None
         self.progress = 0.0       # percent of the current step
-        self.log = []
+        self.log = [{"k": "upload"}]
         self.proc = None
         self.thread = None
         self.stop_flag = False
         self.cancel_flag = False
 
-    def note(self, text):
-        self.log = (self.log + [text])[-80:]
+    def note(self, event):
+        self.log = (self.log + [event])[-80:]
 
     def input_path(self):
         return self.outputs[-1] if self.outputs else self.src
 
     def start(self, steps):
         if self.status not in ("uploaded", "done"):
-            raise ValueError("العملية شغالة أو موقوفة، استخدم متابعة أو إلغاء")
+            raise ValueError("busy")
         if not steps or any(s not in BUILDERS for s in steps):
-            raise ValueError("اختر نوع مونتاج متوفر واحد على الأقل")
+            raise ValueError("need_steps")
         self.steps, self.outputs, self.index, self.log = list(steps), [], 0, []
-        self.note("بدأت العملية: " + " ← ".join(TECH_BY_ID[s]["ar"] for s in steps))
+        self.note({"k": "started", "ids": self.steps})
         self.launch()
 
     def launch(self):
@@ -200,13 +215,13 @@ class Job:
 
     def resume(self):
         if self.status not in ("stopped", "failed"):
-            raise ValueError("ما تقدر تكمل إلا بعد الإيقاف")
-        self.note(f"متابعة من الخطوة {self.index + 1}")
+            raise ValueError("not_stopped")
+        self.note({"k": "resumed", "n": self.index + 1})
         self.launch()
 
     def stop(self):
         if self.status != "running":
-            raise ValueError("ما فيه عملية شغالة لإيقافها")
+            raise ValueError("not_running")
         self.stop_flag = True
         p = self.proc
         if p and p.poll() is None:
@@ -226,7 +241,7 @@ class Job:
 
     def _set_stopped(self):
         self.status = "stopped"
-        self.note(f"تم الإيقاف عند الخطوة {self.index + 1}، تقدر تكمل أو تلغي")
+        self.note({"k": "stopped", "n": self.index + 1})
 
     def _run(self):
         try:
@@ -239,7 +254,7 @@ class Job:
                 n = self.index + 1
                 out = self.dir / f"step{n}_{tid}.mp4"
                 self.current, self.progress = tid, 0.0
-                self.note(f"خطوة {n}: {TECH_BY_ID[tid]['ar']}")
+                self.note({"k": "step", "n": n, "id": tid})
                 args, expected = BUILDERS[tid](self, self.input_path(), out)
                 if self.cancel_flag:
                     return
@@ -254,19 +269,19 @@ class Job:
                 if rc != 0:
                     out.unlink(missing_ok=True)
                     self.status = "failed"
-                    self.note(f"فشلت الخطوة {n}، شوف ffmpeg.err في مجلد العملية")
+                    self.note({"k": "failed", "n": n, "reason": "ffmpeg"})
                     return
                 self.outputs.append(out)
                 self.index += 1
-                self.note(f"انتهت الخطوة {n}")
+                self.note({"k": "stepDone", "n": n})
                 self._frame(out, n)
             shutil.copy(self.outputs[-1], self.dir / "final.mp4")
             self.current, self.progress = None, 100.0
             self.status = "done"
-            self.note("اكتملت كل الخطوات")
+            self.note({"k": "allDone"})
         except StepError as e:
             self.status = "failed"
-            self.note(str(e))
+            self.note({"k": "failed", "n": self.index + 1, "reason": str(e)})
         finally:
             self.proc = None
 
@@ -297,8 +312,6 @@ JOBS_LOCK = threading.Lock()
 
 
 def job_view(job):
-    frames = [f"frame{i + 1}.jpg" for i in range(job.index)
-              if (job.dir / f"frame{i + 1}.jpg").exists()]
     return {
         "id": job.id,
         "status": job.status,
@@ -311,7 +324,6 @@ def job_view(job):
         "current": job.current,
         "progress": round(job.progress, 1),
         "log": job.log,
-        "frames": frames,
         "final": "final.mp4" if job.status == "done" else None,
     }
 
@@ -332,7 +344,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def send_file(self, path, ctype):
         if not path.is_file():
-            return self.send_json(404, {"error": "الملف غير موجود"})
+            return self.send_json(404, {"error": "not_found"})
         self.send_response(200)
         self.send_header("Content-Type", ctype)
         self.send_header("Content-Length", str(path.stat().st_size))
@@ -343,7 +355,7 @@ class Handler(BaseHTTPRequestHandler):
     def get_job(self, jid):
         job = JOBS.get(jid)
         if not job:
-            self.send_json(404, {"error": "العملية ما لقيتها، يمكن انلغت"})
+            self.send_json(404, {"error": "not_found"})
         return job
 
     def do_GET(self):
@@ -364,11 +376,10 @@ class Handler(BaseHTTPRequestHandler):
             name = m[2]
             if name == job.src.name:
                 return self.send_file(job.dir / name, "video/mp4")
-            if name == "final.mp4" or re.fullmatch(r"frame\d+\.jpg", name):
-                ctype = "video/mp4" if name.endswith(".mp4") else "image/jpeg"
-                return self.send_file(job.dir / name, ctype)
-            return self.send_json(404, {"error": "غير موجود"})
-        self.send_json(404, {"error": "غير موجود"})
+            if name == "final.mp4":
+                return self.send_file(job.dir / name, "video/mp4")
+            return self.send_json(404, {"error": "not_found"})
+        self.send_json(404, {"error": "not_found"})
 
     def do_POST(self):
         url = urlparse(self.path)
@@ -376,7 +387,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.upload(parse_qs(url.query))
         m = re.fullmatch(r"/api/jobs/(\w+)/(start|stop|resume|cancel)", url.path)
         if not m:
-            return self.send_json(404, {"error": "غير موجود"})
+            return self.send_json(404, {"error": "not_found"})
         job = self.get_job(m[1])
         if not job:
             return
@@ -401,10 +412,10 @@ class Handler(BaseHTTPRequestHandler):
     def upload(self, qs):
         length = int(self.headers.get("Content-Length") or 0)
         if length <= 0:
-            return self.send_json(411, {"error": "الملف فاضي"})
+            return self.send_json(400, {"error": "empty"})
         if length > MAX_BYTES:
             self.close_connection = True
-            return self.send_json(413, {"error": "الحد الأقصى 200 ميجا"})
+            return self.send_json(413, {"error": "too_big"})
         ext = Path(qs.get("name", ["video.mp4"])[0]).suffix.lower()
         if ext not in EXTS:
             ext = ".mp4"
@@ -427,7 +438,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(400, {"error": str(e)})
         if info["duration"] > MAX_SECONDS:
             shutil.rmtree(folder, ignore_errors=True)
-            return self.send_json(400, {"error": "الحد الأقصى 3 دقائق"})
+            return self.send_json(400, {"error": "too_long"})
         job = Job(jid, src, info)
         with JOBS_LOCK:
             JOBS[jid] = job
@@ -437,10 +448,10 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     for tool in ("ffmpeg", "ffprobe"):
         if not shutil.which(tool):
-            raise SystemExit(f"{tool} غير موجود على الجهاز")
+            raise SystemExit(f"{tool} not found on this machine")
     JOBS_DIR.mkdir(exist_ok=True)
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
-    print(f"افتح http://127.0.0.1:{PORT}")
+    print(f"Open http://127.0.0.1:{PORT}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:
