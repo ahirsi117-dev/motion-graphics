@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تطبيق المونتاج</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2230; --muted:#6b7280; --line:#e3e6ec;
+          --accent:#2563eb; --danger:#dc2626; --ok:#16a34a; --warn:#b45309; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family: system-ui, "Tajawal", sans-serif; line-height:1.6; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .card h2 { font-size: 16px; margin: 0 0 12px; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .techs { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  @media (min-width: 640px) { .techs { grid-template-columns: 1fr 1fr; } }
+  .tech { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 10px; padding: 10px; cursor: pointer; }
+  .tech.off { opacity: .55; cursor: not-allowed; }
+  .tech input { margin-top: 5px; }
+  .tech b { display: block; }
+  .tech small { color: var(--muted); }
+  .order { display: inline-block; min-width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 11px; background: var(--accent); color: #fff; font-size: 12px; margin-inline-start: 6px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button { font: inherit; border: 0; border-radius: 8px; padding: 9px 16px; cursor: pointer; color: #fff; background: var(--accent); }
+  button.secondary { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+  button.danger { background: var(--danger); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; background: var(--line); }
+  .badge.running { background: #dbeafe; color: #1e40af; }
+  .badge.done { background: #dcfce7; color: #166534; }
+  .badge.stopped, .badge.failed { background: #fef3c7; color: var(--warn); }
+  .badge.cancelled { background: #fee2e2; color: #991b1b; }
+  .bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; margin: 12px 0 6px; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .4s; }
+  .log { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: 10px 12px; font-size: 13px; height: 180px; overflow: auto; direction: rtl; white-space: pre-wrap; }
+  .frames { display: flex; gap: 8px; overflow-x: auto; margin-top: 12px; }
+  .frames img { height: 140px; border-radius: 8px; border: 1px solid var(--line); }
+  video { width: 100%; max-height: 420px; border-radius: 10px; background: #000; margin-top: 8px; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>تطبيق المونتاج</h1>
+  <p class="sub">محلي ولك فقط · حد أقصى 3 دقايق و200 ميجا</p>
+
+  <section class="card">
+    <h2>١. ارفع الفيديو</h2>
+    <input id="file" type="file" accept="video/*">
+    <p id="fileInfo" class="muted">ما اخترت فيديو بعد.</p>
+    <video id="source" controls hidden></video>
+  </section>
+
+  <section class="card">
+    <h2>٢. اختر الأنواع <span class="muted">(تطبّق بالترتيب اللي تختاره)</span></h2>
+    <div id="techs" class="techs"></div>
+    <div class="row" style="margin-top:12px">
+      <button id="startBtn" disabled>ابدأ المونتاج</button>
+      <span id="startHint" class="muted"></span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>٣. التقدم</h2>
+    <div class="row">
+      <span id="status" class="badge">لا توجد عملية</span>
+      <span id="current" class="muted"></span>
+    </div>
+    <div class="bar"><div id="bar"></div></div>
+    <div class="muted" id="pct">0%</div>
+    <div class="row" style="margin-top:12px">
+      <button id="stopBtn" class="secondary" disabled>إيقاف</button>
+      <button id="resumeBtn" class="secondary" disabled>متابعة</button>
+      <button id="cancelBtn" class="danger" disabled>إلغاء العملية كاملة</button>
+    </div>
+    <div id="log" class="log" style="margin-top:12px"></div>
+    <div id="frames" class="frames"></div>
+    <div id="result" hidden>
+      <h2 style="margin-top:16px">الناتج</h2>
+      <video id="final" controls></video>
+      <p><a id="download" download="montage.mp4">تنزيل الفيديو</a></p>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (sel) => document.querySelector(sel);
+const LABEL = {uploaded:"جاهز للبدء", running:"يشتغل", stopped:"موقوف", failed:"فشل", done:"خلص", cancelled:"ملغي"};
+let job = null;
+let techs = [];
+let selected = [];
+let timer = null;
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || "خطأ غير معروف");
+  return data;
+}
+
+function byId(id) { return techs.find(t => t.id === id); }
+
+function renderTechs() {
+  $("#techs").innerHTML = techs.map(t => {
+    const pos = selected.indexOf(t.id);
+    const badge = pos >= 0 ? `<span class="order">${pos + 1}</span>` : "";
+    const why = t.available ? "" : `<br><small>غير متوفر: ${t.why || ""}</small>`;
+    return `<label class="tech ${t.available ? "" : "off"}">
+      <input type="checkbox" data-id="${t.id}" ${pos >= 0 ? "checked" : ""} ${t.available ? "" : "disabled"}>
+      <span><b>${t.ar} ${badge}</b><small>${t.en} — ${t.desc}</small>${why}</span>
+    </label>`;
+  }).join("");
+  document.querySelectorAll("#techs input").forEach(cb => cb.addEventListener("change", () => {
+    const id = cb.dataset.id;
+    selected = cb.checked ? [...selected, id] : selected.filter(x => x !== id);
+    renderTechs();
+    updateButtons();
+  }));
+}
+
+function updateButtons() {
+  const st = job ? job.status : null;
+  const hasJob = !!job && st !== "cancelled";
+  $("#startBtn").disabled = !(job && (st === "uploaded" || st === "done") && selected.length > 0);
+  $("#startHint").textContent = !job ? "ارفع فيديو أولاً"
+    : selected.length === 0 ? "اختر نوع واحد على الأقل"
+    : (st === "running" ? "العملية شغالة" : "");
+  $("#stopBtn").disabled = st !== "running";
+  $("#resumeBtn").disabled = !(st === "stopped" || st === "failed");
+  $("#cancelBtn").disabled = !hasJob;
+}
+
+function render() {
+  if (!job) return;
+  const st = job.status;
+  $("#status").textContent = LABEL[st] || st;
+  $("#status").className = "badge " + st;
+  const cur = job.current ? byId(job.current) : null;
+  $("#current").textContent = cur ? `الخطوة ${job.index + 1} من ${job.steps.length}: ${cur.ar}` : "";
+  const total = job.steps.length || 1;
+  const overall = st === "done" ? 100 : ((job.index + job.progress / 100) / total) * 100;
+  $("#bar").style.width = overall.toFixed(1) + "%";
+  $("#pct").textContent = Math.round(overall) + "%";
+  $("#log").textContent = job.log.join("\n");
+  $("#log").scrollTop = $("#log").scrollHeight;
+  $("#frames").innerHTML = job.frames.map(f =>
+    `<img src="/api/jobs/${job.id}/media/${f}?i=${job.index}" alt="">`).join("");
+  if (st === "done") {
+    $("#result").hidden = false;
+    const url = `/api/jobs/${job.id}/media/${job.final}`;
+    $("#final").src = url;
+    $("#download").href = url;
+  } else {
+    $("#result").hidden = true;
+  }
+  updateButtons();
+}
+
+async function refresh() {
+  if (!job) return;
+  try {
+    job = await api(`/api/jobs/${job.id}`);
+    render();
+  } catch (e) {
+    $("#log").textContent = e.message;
+  }
+}
+
+function startPolling() {
+  clearInterval(timer);
+  timer = setInterval(refresh, 800);
+}
+
+$("#file").addEventListener("change", async (ev) => {
+  const file = ev.target.files[0];
+  if (!file) return;
+  if (file.size > 200 * 1024 * 1024) {
+    $("#fileInfo").textContent = "الملف أكبر من 200 ميجا، اختر ملف أصغر.";
+    ev.target.value = "";
+    return;
+  }
+  $("#fileInfo").textContent = "جاري الرفع...";
+  try {
+    job = await api(`/api/jobs?name=${encodeURIComponent(file.name)}`, {
+      method: "POST", body: file, headers: {"Content-Type": file.type || "video/mp4"},
+    });
+    $("#fileInfo").textContent = `${file.name} · ${job.duration.toFixed(1)} ثانية · ${job.width}×${job.height}`;
+    const src = $("#source");
+    src.src = `/api/jobs/${job.id}/media/${job.source}`;
+    src.hidden = false;
+    $("#frames").innerHTML = "";
+    $("#result").hidden = true;
+    $("#log").textContent = "";
+    $("#status").textContent = LABEL.uploaded;
+    updateButtons();
+    startPolling();
+  } catch (e) {
+    $("#fileInfo").textContent = "ما انرفع: " + e.message;
+    job = null;
+  }
+});
+
+$("#startBtn").addEventListener("click", async () => {
+  try {
+    job = await api(`/api/jobs/${job.id}/start`, {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({steps: selected}),
+    });
+    render();
+  } catch (e) { alert(e.message); }
+});
+
+async function action(name) {
+  try {
+    job = await api(`/api/jobs/${job.id}/${name}`, {method: "POST"});
+    render();
+  } catch (e) { alert(e.message); }
+}
+
+$("#stopBtn").addEventListener("click", () => action("stop"));
+$("#resumeBtn").addEventListener("click", () => action("resume"));
+$("#cancelBtn").addEventListener("click", async () => {
+  if (!confirm("تلغي العملية كاملة؟ الملفات المؤقتة بتنحذف.")) return;
+  try {
+    await api(`/api/jobs/${job.id}/cancel`, {method: "POST"});
+    job = {...job, status: "cancelled"};
+    clearInterval(timer);
+    $("#frames").innerHTML = "";
+    $("#result").hidden = true;
+    render();
+  } catch (e) { alert(e.message); }
+});
+
+(async () => {
+  techs = await api("/api/techniques");
+  renderTechs();
+  updateButtons();
+})();
+</script>
+</body>
+</html>
