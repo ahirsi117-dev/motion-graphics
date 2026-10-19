@@ -1,25 +1,58 @@
-# سكربت الفويس أوفر للتسجيل
+# Voiceover script (English)
 
-**كابتن الجولة 8** (ملف reel1.wav)
+Record each reel as one take in a quiet room. Leave a half-second pause between lines. Keep the pace calm and clear. Each reel is about 15 seconds.
 
-كابتنك (كَابْتِنَك، بنبرة سؤال) هالجولة (هالْجَوْلَة)… ممكن يكون غلط (بهدوء، وقفة قبل الكلمة الأخيرة).
-نيتو (نِيتُو): ملكيته (مِلْكِيَّتَه، بتشديد) اثنين بالمية (اثْنِين بِالمِيَّة، بتأكيد) بس (بس، بنبرة استهزاء خفيفة)، وجاب (جاب، بسرعة) خمستعش (خَمْسْطَعْش) نقطة، ويلعب على ملعبه (يِلْعَب عَلى مَلْعَبه، بوضوح) ضد توتنهام (تُوتِنْهام).
-هالاند (هالاند، الدال مفتوحة): ثمان (ثَمَان) أهداف (أهْداف) بآخر ست مباريات (بآخر سِتّ مُبارَيات)… (وقفة طويلة) بس برا (بَرّا، بنبرة خيبة) ضد فيلا (فيلَّا).
-وجواو بيدرو؟ (جواو بيدرو، جُوآو بيدرو، بفضول) اثنين وسبعين بالمية (اثْنَين وسَبْعِين بالمِيَّة، بتأكيد) يملكونه، وما سجّل (ما سَجَّل، بتشديد) الجولة اللي فاتت (الجولة اللي فاتت، بسرعة).
-ها… (ها، بتمهيد، وقفة) منو كابتنك؟ (مَنو كابتنك، بتحدي) الديدلاين (الدِيدلاين) الجمعة (الجُمْعَة، بوضوح).
+Save the files as: reel1.wav, reel2.wav, reel3.wav (WAV, mono, 48 kHz if you can).
 
-**مان سيتي 7 من 7** (ملف reel2.wav)
+---
 
-سبع (سَبْع) مباريات (مُبارَيات)، وسبع (سَبْع) انتصارات (انتصارات، بتأكيد).
-واحد وعشرين (واحِد وعِشْرين) نقطة من واحد وعشرين، وآرسنال (آرسنال، الراء خفيفة) وراهم (وَراهُم) بثلاث نقاط بس (بس، بخفة واستهزاء).
-وهالاند؟ (هالاند، بتشويق) ثمان أهداف، ولا وقف (ولا وَقَف، بنبرة إعجاب).
-بس… (بس، وقفة طويلة قبلها وبعدها) هالاند طلع متأثر بضربة (مُتَأثِّر بِضَرْبَة، بهدوء)، وسيمينيو (سِيمِينيو، السين مكسورة) طلع يعرج (يِعْرِج، بحذر).
-سؤال واحد (سُؤال واحِد، بوضوح): منو يوقف سيتي؟ (مَنو يوقِف سيتي، بتحدي).
+## Reel 1: Captain of Gameweek 8 (reel1.wav)
 
-**ليالي الأبطال** (ملف reel3.wav)
+1. Your captain this gameweek? Might be a mistake.
+   (Calm. Let the question sit. Pause before "mistake.")
+2. Neto: 2% owned, 15 points last round, and he's at home against Tottenham.
+   (NAY-toh. Say "2%" clearly. Stress "15 points.")
+3. Haaland: 8 goals in his last 6 games... but away at Villa.
+   (HAH-lahnd. Pause after "games." Let "away" land flat, a bit of disappointment.)
+4. João Pedro? 72% of managers own him, and he didn't score last round.
+   (zhoo-OWN PEH-droo. Curious tone. Stress "72%.")
+5. So. Who's your captain? Deadline Friday, 8:30 PM Kuwait time.
+   (Challenging tone. Stress "your captain." Say "Friday" clearly.)
 
-أقوى ليلتين (أَقْوى لَيْلَتَين، بحماس) بالأسبوع، ورجع (ورَجَع) دوري الأبطال (دوري الأَبْطال، بفخامة).
-الثلاثاء (الثُّلاثاء): باريس (باريس، الراء مفخمة) ضد برشلونة (بَرْشَلونَة)، 10 بالليل (عَشَرة بالليل) بتوقيت الكويت.
-والأربعاء (والأَرْبِعاء): بايرن (بايِرْن) ضد آرسنال، نفس الساعة (نَفْس السّاعة).
-وقبلها (وَقَبْلَها، بسرعة): ليفربول (ليفربول، الفاء مخففة) وفياريال (فِيّارْيال)، وريال (رِيال) ضد لايبزيغ (لايبتسيغ، الغين خفيفة).
-حط توقعك (حُطّ تَوَقُّعَك) بالتعليقات، واللي يجيبها صح (اللي يِجيبها صَح، بحماس)… (وقفة) نذكر اسمه بالستوري (بالسْتوري، بنبرة ختام).
+---
+
+## Reel 2: Man City 7 out of 7 (reel2.wav)
+
+1. Seven games. Seven wins.
+   (Confident. Stress "Seven wins.")
+2. City on 21 points. Arsenal on 18. Brighton on 16.
+   (Clear and steady. Read the numbers slowly.)
+3. And Haaland? Eight goals. Nobody's stopped him.
+   (HAH-lahnd. Admiring tone. Stress "Nobody.")
+4. But... Haaland came off with a knock, and Semenyo limped off.
+   (Pause after "But." Slow down. Serious tone. seh-MEN-yoh.)
+5. One question: who stops City?
+   (Punchy. Stress "stops.")
+
+---
+
+## Reel 3: Champions League Nights (reel3.wav)
+
+1. Best two nights of the week. The Champions League is back.
+   (Epic, like a sports announcer. Stress "Best.")
+2. Tuesday: Paris vs Barcelona, 10 PM Kuwait time.
+   (PAR-iss. bar-seh-LOH-nah. Stress "Tuesday.")
+3. Wednesday: Bayern vs Arsenal, same time.
+   (BY-ern. Quick, energetic.)
+4. Before that: Liverpool vs Villarreal, and Real Madrid vs Leipzig.
+   (Villarreal: vee-yar-REAL. Leipzig: LIPE-tsig. Fast.)
+5. Drop your prediction below. Whoever gets it right, we'll name them in the story.
+   (Excited. Stress "below" and "right.")
+
+---
+
+## Notes
+
+- All on-screen text in the reels is still in Arabic. This script is only the voiceover.
+- Facts (ownership %, points, goals, injuries, match times) come from the reels document. Check them before posting, especially the injury lines in Reel 2.
+- Reel 3 must go up before Tuesday 10 PM Kuwait time.
