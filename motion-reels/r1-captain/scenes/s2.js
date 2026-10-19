@@ -35,12 +35,13 @@ MOTION.scene({
     if (t < s || t > s + 0.3) return;
     const X = ctx.X; X.save(); X.globalAlpha = 0.25 * (1 - (t - s) / 0.3); X.fillStyle = '#FFFFFF'; X.fillRect(0, 0, ctx.W, ctx.H); X.restore();
   };
-    const bgPhoto = (ctx, t, name) => {
+    const bgPhoto = (ctx, t, name, fx = 0.5) => {
       const img = ctx.img(name); if (!img) return;
       const X = ctx.X, iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
-      const s = Math.max(1080 / iw, 1920 / ih) * (1 + 0.03 * Math.max(0, t - 0));
+      const s = Math.max(1080 / iw, 1920 / ih) * (1 + 0.03 * Math.max(0, t));
       const dw = iw * s, dh = ih * s;
-      X.save(); X.globalAlpha = 0.5; X.drawImage(img, (1080 - dw) / 2, (1920 - dh) / 2 - 80, dw, dh); X.restore();
+      const dx = Math.min(0, Math.max(1080 - dw, 540 - fx * dw));
+      X.save(); X.globalAlpha = 0.5; X.drawImage(img, dx, (1920 - dh) / 2 - 80, dw, dh); X.restore();
       X.save(); X.globalAlpha = 0.55; X.fillStyle = ctx.P.bg; X.fillRect(0, 0, 1080, 1920); X.restore();
     };
     const L = ctx.lineSpan('l2');

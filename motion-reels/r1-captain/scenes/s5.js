@@ -38,7 +38,7 @@ MOTION.scene({
     const L = ctx.lineSpan('l5');
     const close = () => {
       stadium(ctx, t);
-      slam(ctx, t, "WHO'S YOUR CAPTAIN?", 540, 860, { s: ctx.wordTime('l5', 0).s, size: 110, color: P.acc });
+      slam(ctx, t, "WHO'S YOUR CAPTAIN?", 540, 860, { s: ctx.wordTime('l5', 0).s, size: 96, color: P.acc });
       FX.ctaPulse(ctx, t, { text: 'Deadline: Fri 8:30 PM KWT', s: L.s + 0.8, y: 1180, tap: null });
       cap(ctx, t, 'l5', 1410);
     };
