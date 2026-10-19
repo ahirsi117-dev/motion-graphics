@@ -3,3 +3,4 @@ out/
 motion-reels/*/renders/
 motion-reels/*/vo/
 motion-reels/*/timeline.json
+motion-reels/*/assets/*user*.jpg

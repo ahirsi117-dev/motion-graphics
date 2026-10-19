@@ -35,13 +35,21 @@ MOTION.scene({
     if (t < s || t > s + 0.3) return;
     const X = ctx.X; X.save(); X.globalAlpha = 0.25 * (1 - (t - s) / 0.3); X.fillStyle = '#FFFFFF'; X.fillRect(0, 0, ctx.W, ctx.H); X.restore();
   };
+    const bgPhoto = (ctx, t, name) => {
+      const img = ctx.img(name); if (!img) return;
+      const X = ctx.X, iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+      const s = Math.max(1080 / iw, 1920 / ih) * (1 + 0.03 * Math.max(0, t - 0));
+      const dw = iw * s, dh = ih * s;
+      X.save(); X.globalAlpha = 0.5; X.drawImage(img, (1080 - dw) / 2, (1920 - dh) / 2 - 80, dw, dh); X.restore();
+      X.save(); X.globalAlpha = 0.55; X.fillStyle = ctx.P.bg; X.fillRect(0, 0, 1080, 1920); X.restore();
+    };
     const L = ctx.lineSpan('l3');
     const haa = () => {
       stadium(ctx, t);
-      const img = ctx.img('haaland');
+      bgPhoto(ctx, t, 'haaland');
+      const img = null;
       const k = ctx.at(t, L.s, L.s + 0.5, 'expoOut');
       if (img) { X.save(); X.globalAlpha = k; X.drawImage(img, 270, 330, 540, 720); X.restore(); }
-      ctx.text(X, 'Photo: Patryk Antkiewicz · CC BY-SA 2.0 · Wikimedia Commons', 540, 215, { family: 'body', weight: 600, size: 30, color: P.ink, align: 'center', dir: 'ltr', maxWidth: 940, alpha: k });
       rise(ctx, t, 'HAALAND', 540, 1190, { s: L.s + 0.3, size: 120, color: P.ink });
       rise(ctx, t, '8 goals in 6 games', 540, 1290, { s: L.s + 0.8, size: 60, color: P.acc });
       cap(ctx, t, 'l3', 1410);

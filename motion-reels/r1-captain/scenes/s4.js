@@ -35,9 +35,18 @@ MOTION.scene({
     if (t < s || t > s + 0.3) return;
     const X = ctx.X; X.save(); X.globalAlpha = 0.25 * (1 - (t - s) / 0.3); X.fillStyle = '#FFFFFF'; X.fillRect(0, 0, ctx.W, ctx.H); X.restore();
   };
+    const bgPhoto = (ctx, t, name) => {
+      const img = ctx.img(name); if (!img) return;
+      const X = ctx.X, iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+      const s = Math.max(1080 / iw, 1920 / ih) * (1 + 0.03 * Math.max(0, t - 0));
+      const dw = iw * s, dh = ih * s;
+      X.save(); X.globalAlpha = 0.5; X.drawImage(img, (1080 - dw) / 2, (1920 - dh) / 2 - 80, dw, dh); X.restore();
+      X.save(); X.globalAlpha = 0.55; X.fillStyle = ctx.P.bg; X.fillRect(0, 0, 1080, 1920); X.restore();
+    };
     const L = ctx.lineSpan('l4');
     const joao = () => {
       stadium(ctx, t);
+      bgPhoto(ctx, t, 'joao');
       FX.ringStat(ctx, t, { value: 72, s: L.s, y: 900, r: 230, color: P.clay, label: 'João Pedro · ownership' });
       rise(ctx, t, 'No goal last round', 540, 1335, { s: L.s + 1.2, size: 56, color: P.clay });
       cap(ctx, t, 'l4', 1410);

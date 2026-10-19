@@ -124,6 +124,8 @@
     }
   ],
   "images": {
-    "haaland": "assets/haaland_2023.jpg"
+    "haaland": "assets/haaland_user.jpg",
+    "neto": "assets/neto_user.jpg",
+    "joao": "assets/joao_user.jpg"
   }
 }
