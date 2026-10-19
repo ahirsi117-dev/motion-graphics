@@ -1,2 +1,5 @@
 node_modules/
 out/
+motion-reels/*/renders/
+motion-reels/*/vo/
+motion-reels/*/timeline.json

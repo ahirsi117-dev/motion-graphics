@@ -5,6 +5,6 @@ MOTION.scene({
     const { X, P, FX } = ctx;
     X.fillStyle = P.bg; X.fillRect(0, 0, ctx.W, ctx.H);
     FX.wordDrop(ctx, t, { text: 'كابتنك هذه الجولة؟', s: ctx.wordTime('l1', 0).s, y: 700, size: 150, accent: [2] });
-    FX.caption(ctx, t, { line: 'l1', y: 1330, size: 76 });
+    FX.caption(ctx, t, { line: 'l1', x: 500, y: 1330, size: 76 });
   }
 });

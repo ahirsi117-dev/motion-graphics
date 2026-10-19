@@ -4,7 +4,7 @@ MOTION.scene({
   draw(t, lt, ctx) {
     const { X, P, FX } = ctx;
     X.fillStyle = P.bg; X.fillRect(0, 0, ctx.W, ctx.H);
-    FX.barChart(ctx, t, { data: [['مان سيتي', 21], ['آرسنال', 18], ['برايتون', 16]], hi: 0, s: ctx.lineSpan('l2').s, y0: 1300, h: 760 });
-    FX.caption(ctx, t, { line: 'l2', y: 1400, size: 62 });
+    FX.barChart(ctx, t, { data: [['مان سيتي', 21], ['آرسنال', 18], ['برايتون', 16]], hi: 0, s: ctx.lineSpan('l2').s, y0: 1180, h: 700 });
+    FX.caption(ctx, t, { line: 'l2', x: 500, y: 1400, size: 62 });
   }
 });

@@ -5,6 +5,6 @@ MOTION.scene({
     const { X, P, FX } = ctx;
     X.fillStyle = P.bg; X.fillRect(0, 0, ctx.W, ctx.H);
     FX.counter(ctx, t, { value: '8', s: ctx.lineSpan('l3').s, y: 880, size: 260, label: 'هالاند — أهداف هذا الموسم' });
-    FX.caption(ctx, t, { line: 'l3', y: 1400, size: 62 });
+    FX.caption(ctx, t, { line: 'l3', x: 500, y: 1400, size: 62 });
   }
 });
