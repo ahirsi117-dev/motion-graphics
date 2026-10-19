@@ -1,0 +1,34 @@
+[
+ {
+  "type": "impact",
+  "at": "scene:s1"
+ },
+ {
+  "type": "boom",
+  "at": "scene:s1"
+ },
+ {
+  "type": "swoosh-pass",
+  "at": "scene:s2"
+ },
+ {
+  "type": "swoosh-pass",
+  "at": "scene:s3"
+ },
+ {
+  "type": "glitch",
+  "at": "scene:s4"
+ },
+ {
+  "type": "impact",
+  "at": "scene:s4"
+ },
+ {
+  "type": "impact",
+  "at": "scene:s5"
+ },
+ {
+  "type": "sub-drop",
+  "at": "scene:s5"
+ }
+]

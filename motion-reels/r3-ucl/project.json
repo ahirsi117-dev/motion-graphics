@@ -3,7 +3,7 @@
   "fps": 60,
   "width": 1080,
   "height": 1920,
-  "bpm": 120,
+  "bpm": 128,
   "beatsPerBar": 4,
   "beatOffset": 0,
   "palette": {
@@ -50,9 +50,8 @@
         "l2"
       ],
       "transition": {
-        "type": "wipe",
-        "dur": 0.35,
-        "dir": "rtl"
+        "type": "flash",
+        "dur": 0.3
       }
     },
     {
@@ -62,9 +61,8 @@
         "l3"
       ],
       "transition": {
-        "type": "wipe",
-        "dur": 0.35,
-        "dir": "rtl"
+        "type": "glitch",
+        "dur": 0.3
       }
     },
     {
@@ -86,10 +84,43 @@
         "l5"
       ],
       "transition": {
-        "type": "wipe",
-        "dur": 0.35,
-        "dir": "rtl"
+        "type": "flash",
+        "dur": 0.3
       }
+    }
+  ],
+  "music": {
+    "key": "E",
+    "scale": "minor",
+    "progression": [
+      0,
+      5,
+      2,
+      6
+    ],
+    "level": -6,
+    "duck": -6,
+    "top": {
+      "hat": 17,
+      "pluck": 4
+    }
+  },
+  "sections": [
+    {
+      "name": "drop",
+      "at": 0
+    },
+    {
+      "name": "break",
+      "at": "scene:s3"
+    },
+    {
+      "name": "drop",
+      "at": "scene:s4"
+    },
+    {
+      "name": "outro",
+      "at": "scene:s5"
     }
   ]
 }
