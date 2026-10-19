@@ -17,18 +17,22 @@
  },
  {
   "type": "glitch",
-  "at": "scene:s4"
+  "at": "scene:s4",
+  "gain": 0.56
  },
  {
   "type": "impact",
-  "at": "scene:s4"
+  "at": "scene:s4",
+  "gain": 0.56
  },
  {
   "type": "impact",
-  "at": "scene:s5"
+  "at": "scene:s5",
+  "gain": 0.56
  },
  {
   "type": "sub-drop",
-  "at": "scene:s5"
+  "at": "scene:s5",
+  "gain": 0.56
  }
 ]
