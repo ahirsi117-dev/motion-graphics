@@ -29,13 +29,11 @@
     "pitch": "+0Hz"
   },
   "timing": {
-    "snap": "half",
-    "snapTarget": "line",
-    "snapLines": "all",
-    "leadIn": 0.25,
-    "gap": 0.08,
+    "snap": "none",
+    "leadIn": 0.1,
+    "gap": 0.1,
     "startPad": 0.1,
-    "tail": 0.4
+    "tail": 0.3
   },
   "scenes": [
     {
