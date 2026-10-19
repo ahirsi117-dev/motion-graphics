@@ -122,5 +122,8 @@
       "name": "outro",
       "at": "scene:s5"
     }
-  ]
+  ],
+  "images": {
+    "haaland": "assets/haaland_2023.jpg"
+  }
 }

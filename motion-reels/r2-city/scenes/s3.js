@@ -38,9 +38,14 @@ MOTION.scene({
     const L = ctx.lineSpan('l3');
     const haa = () => {
       stadium(ctx, t);
-      FX.counter(ctx, t, { value: '8', s: L.s, y: 880, size: 260, label: 'Haaland · goals' });
+      const img = ctx.img('haaland');
+      const k = ctx.at(t, L.s, L.s + 0.5, 'expoOut');
+      if (img) { X.save(); X.globalAlpha = k; X.drawImage(img, 270, 330, 540, 720); X.restore(); }
+      ctx.text(X, 'Photo: Patryk Antkiewicz · CC BY-SA 2.0 · Wikimedia Commons', 540, 215, { family: 'body', weight: 500, size: 24, color: P.mut, align: 'center', dir: 'ltr', maxWidth: 940, alpha: k });
+      rise(ctx, t, 'HAALAND', 540, 1190, { s: L.s + 0.3, size: 120, color: P.ink });
+      rise(ctx, t, '8 goals in 6 games', 540, 1290, { s: L.s + 0.8, size: 60, color: P.acc });
       cap(ctx, t, 'l3', 1410);
     };
-    FX.pushIn(ctx, t, { s: L.s, to: 1.08, focus: [540, 900], dur: 1.4, blur: false, draw: haa });
+    FX.pushIn(ctx, t, { s: L.s, to: 1.06, focus: [540, 900], dur: 1.4, blur: false, draw: haa });
   }
 });
