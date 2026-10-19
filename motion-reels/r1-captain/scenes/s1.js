@@ -1,10 +1,18 @@
-/* s1 — الهوك: «كابتنك هذه الجولة؟» تطيح كلمة كلمة، وعلامة الاستفهام الكبيرة بالنص */
+/* hook: "Captain this GW?" rises in */
 MOTION.scene({
   id: 's1',
   draw(t, lt, ctx) {
     const { X, P, FX } = ctx;
     X.fillStyle = P.bg; X.fillRect(0, 0, ctx.W, ctx.H);
-    FX.wordDrop(ctx, t, { text: 'كابتنك هذه الجولة؟', s: ctx.wordTime('l1', 0).s, y: 700, size: 150, accent: [2] });
-    FX.caption(ctx, t, { line: 'l1', x: 500, y: 1330, size: 76 });
+  const rise = (ctx, t, str, x, y, o) => {
+    const k = ctx.at(t, o.s, o.s + 0.45, 'expoOut');
+    ctx.text(ctx.X, str, x, y + (1 - k) * 60, { family: 'display', weight: 800, size: o.size, color: o.color || ctx.P.ink, align: 'center', dir: 'ltr', maxWidth: 960, alpha: k });
+  };
+  const cap = (ctx, t, line, y) => {
+    const sp = ctx.lineSpan(line), k = ctx.at(t, sp.s - 0.05, sp.s + 0.25, 'expoOut');
+    ctx.text(ctx.X, sp.text, 500, y, { family: 'body', weight: 600, size: 52, color: ctx.P.ink, align: 'center', dir: 'ltr', maxWidth: 880, alpha: k });
+  };
+    rise(ctx, t, 'Captain this GW?', 540, 700, { s: ctx.wordTime('l1', 0).s, size: 130, color: P.ink });
+    cap(ctx, t, 'l1', 1330);
   }
 });

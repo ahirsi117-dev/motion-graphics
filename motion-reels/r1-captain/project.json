@@ -1,16 +1,97 @@
 {
   "name": "كابتن الجولة 8",
-  "fps": 60, "width": 1080, "height": 1920, "bpm": 120, "beatsPerBar": 4, "beatOffset": 0,
-  "palette": { "bg": "#0A0F1C", "ink": "#F5F7FA", "acc": "#FFC532", "clay": "#FF4D5E", "hi": "#FFD966", "mut": "#98A2B3" },
-  "fonts": { "display": "Lalezar", "body": "IBM Plex Sans Arabic", "num": "Inter" },
-  "post": { "grain": 0.03, "vignette": 0.25 },
-  "voice": { "name": "ar-SA-HamedNeural", "rate": "+20%", "pitch": "+0Hz" },
-  "timing": { "snap": "half", "snapTarget": "line", "snapLines": "all", "leadIn": 0.25, "gap": 0.08, "startPad": 0.1, "tail": 0.4 },
+  "fps": 60,
+  "width": 1080,
+  "height": 1920,
+  "bpm": 120,
+  "beatsPerBar": 4,
+  "beatOffset": 0,
+  "palette": {
+    "bg": "#0A0F1C",
+    "ink": "#F5F7FA",
+    "acc": "#FFC532",
+    "clay": "#FF4D5E",
+    "hi": "#FFD966",
+    "mut": "#98A2B3"
+  },
+  "fonts": {
+    "display": "Inter",
+    "body": "Inter",
+    "num": "Inter"
+  },
+  "post": {
+    "grain": 0.03,
+    "vignette": 0.25
+  },
+  "voice": {
+    "name": "en-US-AndrewNeural",
+    "rate": "+20%",
+    "pitch": "+0Hz"
+  },
+  "timing": {
+    "snap": "half",
+    "snapTarget": "line",
+    "snapLines": "all",
+    "leadIn": 0.25,
+    "gap": 0.08,
+    "startPad": 0.1,
+    "tail": 0.4
+  },
   "scenes": [
-    { "id": "s1", "file": "scenes/s1.js", "lines": ["l1"] },
-    { "id": "s2", "file": "scenes/s2.js", "lines": ["l2"], "transition": { "type": "wipe", "dur": 0.35, "dir": "rtl" } },
-    { "id": "s3", "file": "scenes/s3.js", "lines": ["l3"], "transition": { "type": "wipe", "dur": 0.35, "dir": "rtl" } },
-    { "id": "s4", "file": "scenes/s4.js", "lines": ["l4"], "transition": { "type": "wipe", "dur": 0.35, "dir": "rtl" } },
-    { "id": "s5", "file": "scenes/s5.js", "lines": ["l5"], "transition": { "type": "wipe", "dur": 0.35, "dir": "rtl" } }
+    {
+      "id": "s1",
+      "file": "scenes/s1.js",
+      "lines": [
+        "l1"
+      ]
+    },
+    {
+      "id": "s2",
+      "file": "scenes/s2.js",
+      "lines": [
+        "l2"
+      ],
+      "transition": {
+        "type": "wipe",
+        "dur": 0.35,
+        "dir": "rtl"
+      }
+    },
+    {
+      "id": "s3",
+      "file": "scenes/s3.js",
+      "lines": [
+        "l3"
+      ],
+      "transition": {
+        "type": "wipe",
+        "dur": 0.35,
+        "dir": "rtl"
+      }
+    },
+    {
+      "id": "s4",
+      "file": "scenes/s4.js",
+      "lines": [
+        "l4"
+      ],
+      "transition": {
+        "type": "wipe",
+        "dur": 0.35,
+        "dir": "rtl"
+      }
+    },
+    {
+      "id": "s5",
+      "file": "scenes/s5.js",
+      "lines": [
+        "l5"
+      ],
+      "transition": {
+        "type": "wipe",
+        "dur": 0.35,
+        "dir": "rtl"
+      }
+    }
   ]
 }
