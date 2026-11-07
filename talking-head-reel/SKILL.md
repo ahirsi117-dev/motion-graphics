@@ -159,7 +159,7 @@ echo '{"title":["أذربيجان","*والحجاب*"],"eyebrow":"التاريخ
 node <skill>/scripts/render.mjs <work> --cover        # → cover.jpg
 python3 <skill>/scripts/encode.py <work> <out.mp4> --cover
 ```
-`encode.py` uses the **original audio unchanged**, splices protected ranges from the source and prints their PSNR. `--loudnorm` normalises to −14 LUFS — skip it when the video holds protected content (it changes the recitation's level too) or when the source is already around −14 (`ffmpeg -i out.mp4 -af ebur128 -f null -` to check).
+`encode.py` uses the **original audio unchanged**, splices protected ranges from the source and prints their PSNR. `--loudnorm` normalises to −14 LUFS — skip it when the video holds protected content (it changes the recitation's level too) or when the source is already around −14 (`ffmpeg -i out.mp4 -af ebur128 -f null -` to check). **Always check:** phone recordings are often −25 to −30 LUFS — far too quiet for the feed; with no protected content, re-encode with `--loudnorm`.
 
 ### 8. Deliver
 
