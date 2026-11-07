@@ -5,7 +5,8 @@ fixes.json:
   {"fix": [ ["word","word",...],   # one list per whisper segment, SAME word count as whisper's
             "a free sentence",     # or a plain string when whisper hallucinated: words are spread over the segment
             ... ],
-   "hot": ["word", ...]}           # words drawn in the accent colour
+   "hot": ["word", ...],           # words drawn in the accent colour
+   "breaks": ["0:12"]}             # optional: start a new card at these word refs (keep a phrase together)
   "" inside a list hides that word from the captions (the audio is untouched).
 Cards are split every --max words, at pauses > 0.45 s, and at every segment boundary. Words inside a protected range
 (scenes.json -> "protect") are dropped, and cards are clipped so no caption touches it.
@@ -17,6 +18,7 @@ tr = json.load(open(os.path.join(W, "a.json")))
 fp = os.path.join(W, "fixes.json")
 fx = json.load(open(fp)) if os.path.exists(fp) else {"fix": [], "hot": []}
 FIX, HOT = fx.get("fix", []), set(fx.get("hot", []))
+BRK = set(fx.get("breaks", []))   # refs ("seg:index") where a new caption card must start — keeps a phrase together
 sp = os.path.join(W, "scenes.json")
 PROT = json.load(open(sp)).get("protect", []) if os.path.exists(sp) else []
 dur = float(os.popen(f'ffprobe -v error -show_entries format=duration -of csv=p=0 "{os.path.join(W, "src.mp4")}"').read())
@@ -42,7 +44,7 @@ refs = {w["ref"]: [round(w["s"], 3), round(w["e"], 3)] for w in words}
 vis = [w for w in words if w["t"] and not inprot(w["s"])]
 cards, cur = [], []
 for w in vis:
-    if cur and (len(cur) >= MAXW or w["s"] - cur[-1]["e"] > 0.45 or w["seg"] != cur[-1]["seg"]):
+    if cur and (w["ref"] in BRK or len(cur) >= MAXW or w["s"] - cur[-1]["e"] > 0.45 or w["seg"] != cur[-1]["seg"]):
         cards.append(cur); cur = []
     cur.append(w)
 if cur: cards.append(cur)

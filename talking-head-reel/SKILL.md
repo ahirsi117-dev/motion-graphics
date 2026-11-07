@@ -48,6 +48,15 @@ ffmpeg -v error -i <work>/src.mp4 -vf "fps=1/3,scale=240:-1,drawtext=text='%{pts
 ```
 Note: b-roll inserts, text already burned into the video (place your captions/graphics away from it — `theme.json → capY`), and **sacred / locked content**.
 
+### 1b. Retakes and long silences — cut before anything else
+
+`setup.sh` → `transcribe.py` and a silence scan (`ffmpeg -i src.mp4 -af silencedetect=n=-35dB:d=0.4 -f null -`) show it: **the same sentence said twice** (a retake) or a pause > 1.5 s. Whisper often skips the second take entirely — if the silence scan shows speech the transcript doesn't cover, transcribe that range on its own. Ask the user once which take to keep (default/recommended: the later one — it's usually the correction), then cut and restart from frames in a fresh `<work>`:
+```bash
+bash <skill>/scripts/cut.sh <work>/src.mp4 <work2>/take.mp4 15.15-22.1 [a-b ...]   # keep ranges, joined frame-accurately
+bash <skill>/scripts/frames.sh <work2> <work2>/take.mp4 && python3 <skill>/scripts/transcribe.py <work2>
+```
+Never cut inside a protected range.
+
 ### 2. Verse / hadith check — only if there is one
 
 **Most videos have no verse or hadith. Then there is nothing to protect: leave `protect` empty (`[]`), don't mention it, and edit the whole video normally.**
@@ -67,8 +76,9 @@ python3 <skill>/scripts/transcribe.py <work> [--model medium] [--lang ar]   # ba
 ```
 Whisper mishears dialect. Write `<work>/fixes.json` — one list per segment with **exactly** whisper's word count (`""` hides a word; a plain string replaces a hallucinated segment), plus `hot` words drawn in the accent colour:
 ```json
-{"fix": [["يمكن","قاعدين","تشوفون"], "جملة كاملة إذا وسبر هلوس"], "hot": ["90%","التاريخ"]}
+{"fix": [["يمكن","قاعدين","تشوفون"], "جملة كاملة إذا وسبر هلوس"], "hot": ["90%","التاريخ"], "breaks": ["0:12"]}
 ```
+`breaks` (optional) = word refs where a new caption card must start, so a phrase like «ليش رح أوقف…» isn't split across two cards.
 Typical fixes: «شن» → «شنو», «بصورة التوضيح» → «بسورة التوبة» (listen to meaning, not sound), Western digits always (90 not ٩٠). Don't invent words you didn't hear — generalise instead.
 
 ```bash
